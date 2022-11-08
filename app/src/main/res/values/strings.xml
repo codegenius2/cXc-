@@ -1,3 +1,34 @@
 <resources>
     <string name="app_name">CameraX Project</string>
+    <string name="give_permissions">Give Permissions</string>
+    <string name="permissions">Permissions</string>
+    <string name="permissions_required">Permissions are required to use the app.</string>
+    <string name="permissions_important">These permissions are important for the app. Please grant all of them for the app to function properly.</string>
+    <string name="permissions_needed">Permissions needed!</string>
+    <string name="deny">Deny</string>
+    <string name="open_camera">Open Camera</string>
+    <string name="search">Search</string>
+    <string name="unknown_viewmodel">Unknown ViewModel class</string>
+    <string name="change_flash_settings">Change flash settings</string>
+    <string name="flip_camera">Flip camera</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="start_recording">Start recording</string>
+    <string name="resume_recording">Resume recording</string>
+    <string name="pause_recording">Pause recording</string>
+    <string name="play_video">Play video</string>
+    <string name="pause_video">Pause video</string>
+    <string name="capture_image">Capture image</string>
+    <string name="latest_image">Latest captured image</string>
+    <string name="add_filter">Add filter</string>
+    <string name="go_settings">Go to settings</string>
+    <string name="delay_settings">Capture delay settings</string>
+    <string name="quality_selector">Change video quality</string>
+    <string name="camera_mode_auto">Auto</string>
+    <string name="camera_mode_night">Night</string>
+    <string name="camera_mode_hdr">HDR</string>
+    <string name="camera_mode_face_retouch">Face Retouch</string>
+    <string name="camera_mode_bokeh">Bokeh</string>
+    <string name="camera_mode_none">Photo</string>
+    <string name="camera_mode_video">Video</string>
+
 </resources>
