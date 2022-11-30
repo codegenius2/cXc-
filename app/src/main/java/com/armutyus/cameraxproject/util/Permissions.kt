@@ -64,7 +64,7 @@ private fun RequestPermissions(
                 }
             }
         } else {
-            AlertDialog(onDismissRequest = { /*TODO*/ },
+            AlertDialog(onDismissRequest = { /* */ },
                 title = { Text(text = stringResource(id = R.string.permissions)) },
                 text = { Text(text = stringResource(id = R.string.permissions_important)) },
                 confirmButton = {

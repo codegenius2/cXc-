@@ -247,7 +247,13 @@ private fun VideoScreenContent(
                     showFlipIcon = hasDualCamera,
                     rotation = rotation,
                     view = view,
-                    onThumbnailTapped = { onEvent(VideoEvent.ThumbnailTapped) },
+                    onThumbnailTapped = {
+                        onEvent(
+                            VideoEvent.ThumbnailTapped(
+                                videoUri ?: Uri.EMPTY
+                            )
+                        )
+                    },
                     onRecordTapped = {
                         when (delayTimer) {
                             TIMER_OFF -> onEvent(VideoEvent.RecordTapped(0L))

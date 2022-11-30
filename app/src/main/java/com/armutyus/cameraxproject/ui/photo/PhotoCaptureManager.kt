@@ -177,76 +177,78 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
         previewPhotoState: PreviewPhotoState,
         cameraPreview: PreviewView
     ): View {
-        getLifeCycleOwner().lifecycleScope.launchWhenResumed {
-            cameraProviderFuture = ProcessCameraProvider.getInstance(getContext())
+        getLifeCycleOwner().lifecycleScope.launch {
+            getLifecycle().repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                cameraProviderFuture = ProcessCameraProvider.getInstance(getContext())
 
-            val cameraProvider = cameraProviderFuture.await()
-            val extensionsManager =
-                ExtensionsManager.getInstanceAsync(getContext(), cameraProvider).await()
+                val cameraProvider = cameraProviderFuture.await()
+                val extensionsManager =
+                    ExtensionsManager.getInstanceAsync(getContext(), cameraProvider).await()
 
-            cameraProvider.unbindAll()
+                cameraProvider.unbindAll()
 
-            // Every time the orientation of device changes, update rotation for use cases
-            orientationEventListener.enable()
+                // Every time the orientation of device changes, update rotation for use cases
+                orientationEventListener.enable()
 
-            // Get screen metrics used to setup camera for full screen resolution
-            val metrics = Util.ScreenSizeCompat.getScreenSize(getContext())
-            Log.d(TAG, "Screen metrics: ${metrics.width} x ${metrics.height}")
-            val screenAspectRatio = aspectRatio(metrics.width, metrics.height)
-            Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
+                // Get screen metrics used to setup camera for full screen resolution
+                val metrics = Util.ScreenSizeCompat.getScreenSize(getContext())
+                Log.d(TAG, "Screen metrics: ${metrics.width} x ${metrics.height}")
+                val screenAspectRatio = aspectRatio(metrics.width, metrics.height)
+                Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
 
-            val rotation = getView().rotation
+                val rotation = getView().rotation
 
-            //Select a camera lens with or without extensions
-            val cameraSelector: CameraSelector =
-                if (previewPhotoState.extensionMode == ExtensionMode.NONE) {
-                    CameraSelector.Builder()
-                        .requireLensFacing(previewPhotoState.cameraLens)
-                        .build()
-                } else {
-                    extensionsManager.getExtensionEnabledCameraSelector(
+                //Select a camera lens with or without extensions
+                val cameraSelector: CameraSelector =
+                    if (previewPhotoState.extensionMode == ExtensionMode.NONE) {
                         CameraSelector.Builder()
                             .requireLensFacing(previewPhotoState.cameraLens)
-                            .build(),
-                        previewPhotoState.extensionMode
-                    )
-                }
+                            .build()
+                    } else {
+                        extensionsManager.getExtensionEnabledCameraSelector(
+                            CameraSelector.Builder()
+                                .requireLensFacing(previewPhotoState.cameraLens)
+                                .build(),
+                            previewPhotoState.extensionMode
+                        )
+                    }
 
-            val camera = cameraProvider.bindToLifecycle(getLifeCycleOwner(), cameraSelector)
+                val camera = cameraProvider.bindToLifecycle(getLifeCycleOwner(), cameraSelector)
 
-            //Create Preview use case
-            val preview: Preview = Preview.Builder()
-                .setTargetAspectRatio(screenAspectRatio)
-                .setTargetRotation(rotation)
-                .build()
-                .apply { setSurfaceProvider(cameraPreview.surfaceProvider) }
+                //Create Preview use case
+                val preview: Preview = Preview.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
+                    .build()
+                    .apply { setSurfaceProvider(cameraPreview.surfaceProvider) }
 
-            //Create Image Capture use case
-            imageCapture = ImageCapture.Builder()
-                .setTargetAspectRatio(screenAspectRatio)
-                .setTargetRotation(rotation)
-                .setFlashMode(previewPhotoState.flashMode)
-                .build()
+                //Create Image Capture use case
+                imageCapture = ImageCapture.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
+                    .setFlashMode(previewPhotoState.flashMode)
+                    .build()
 
-            //Create Image Analyzer use case
-            imageAnalyzer = ImageAnalysis.Builder()
-                // We request aspect ratio but no resolution
-                .setTargetAspectRatio(screenAspectRatio)
-                // Set initial target rotation, we will have to call this again if rotation changes
-                // during the lifecycle of this use case
-                .setTargetRotation(rotation)
-                .build()
+                //Create Image Analyzer use case
+                imageAnalyzer = ImageAnalysis.Builder()
+                    // We request aspect ratio but no resolution
+                    .setTargetAspectRatio(screenAspectRatio)
+                    // Set initial target rotation, we will have to call this again if rotation changes
+                    // during the lifecycle of this use case
+                    .setTargetRotation(rotation)
+                    .build()
 
-            //imageAnalyzer.setAnalyzer(ContextCompat.getMainExecutor(getContext()), this@PhotoCaptureManager)
+                //imageAnalyzer.setAnalyzer(ContextCompat.getMainExecutor(getContext()), this@PhotoCaptureManager)
 
-            cameraProvider.bindToLifecycle(
-                getLifeCycleOwner(),
-                cameraSelector,
-                preview,
-                imageCapture,
-                imageAnalyzer
-            )
-            setupZoomAndTapToFocus(cameraPreview, camera)
+                cameraProvider.bindToLifecycle(
+                    getLifeCycleOwner(),
+                    cameraSelector,
+                    preview,
+                    imageCapture,
+                    imageAnalyzer
+                )
+                setupZoomAndTapToFocus(cameraPreview, camera)
+            }
         }
         return cameraPreview
     }

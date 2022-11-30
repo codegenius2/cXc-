@@ -17,7 +17,6 @@ import com.armutyus.cameraxproject.ui.video.models.VideoEvent
 import com.armutyus.cameraxproject.ui.video.models.VideoState
 import com.armutyus.cameraxproject.util.FileManager
 import com.armutyus.cameraxproject.util.Util
-import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_PREVIEW_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_DIR
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_EXTENSION
@@ -39,10 +38,10 @@ class VideoViewModel constructor(
         when (videoEvent) {
             VideoEvent.FlashTapped -> onFlashTapped()
             VideoEvent.FlipTapped -> onFlipTapped()
-            VideoEvent.ThumbnailTapped -> onThumbnailTapped()
             VideoEvent.DelayTimerTapped -> onDelayTimerTapped()
             VideoEvent.SettingsTapped -> onSettingsTapped()
             VideoEvent.SetVideoQuality -> onSetVideoQuality()
+            is VideoEvent.ThumbnailTapped -> onThumbnailTapped(videoEvent.uri)
 
             VideoEvent.PauseTapped -> onPauseTapped()
             VideoEvent.ResumeTapped -> onResumeTapped()
@@ -102,9 +101,12 @@ class VideoViewModel constructor(
         }
     }
 
-    private fun onThumbnailTapped() {
+    private fun onThumbnailTapped(uri: Uri?) {
+        val type = "video"
         viewModelScope.launch {
-            _videoEffect.emit(VideoEffect.NavigateTo(PHOTO_PREVIEW_ROUTE))
+            _videoEffect.emit(
+                VideoEffect.NavigateTo("preview_screen/?filePath=${uri?.toString()}/?itemType=${type}")
+            )
         }
     }
 

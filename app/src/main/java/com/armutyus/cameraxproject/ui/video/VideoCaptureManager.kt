@@ -14,10 +14,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
 import com.armutyus.cameraxproject.ui.video.models.PreviewVideoState
 import com.armutyus.cameraxproject.util.Util
@@ -160,45 +157,47 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
         previewVideoState: PreviewVideoState,
         cameraPreview: PreviewView = getCameraPreview()
     ): View {
-        getLifeCycleOwner().lifecycleScope.launchWhenCreated {
-            val cameraProvider = cameraProviderFuture.await()
-            cameraProvider.unbindAll()
+        getLifeCycleOwner().lifecycleScope.launch {
+            getLifecycle().repeatOnLifecycle(state = Lifecycle.State.RESUMED) {
+                val cameraProvider = cameraProviderFuture.await()
+                cameraProvider.unbindAll()
 
-            orientationEventListener.enable()
+                orientationEventListener.enable()
 
-            //Select a camera lens
-            val cameraSelector: CameraSelector = CameraSelector.Builder()
-                .requireLensFacing(previewVideoState.cameraLens)
-                .build()
+                //Select a camera lens
+                val cameraSelector: CameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(previewVideoState.cameraLens)
+                    .build()
 
-            val camera = cameraProvider.bindToLifecycle(getLifeCycleOwner(), cameraSelector)
+                val camera = cameraProvider.bindToLifecycle(getLifeCycleOwner(), cameraSelector)
 
-            // create the user required QualitySelector (video resolution): we know this is
-            // supported, a valid qualitySelector will be created.
-            val quality = previewVideoState.quality
-            val qualitySelector = QualitySelector.from(quality)
+                // create the user required QualitySelector (video resolution): we know this is
+                // supported, a valid qualitySelector will be created.
+                val quality = previewVideoState.quality
+                val qualitySelector = QualitySelector.from(quality)
 
-            //Create Preview use case
-            val preview: Preview = Preview.Builder()
-                .setTargetAspectRatio(quality.getAspectRatio(quality))
-                .build()
-                .apply { setSurfaceProvider(cameraPreview.surfaceProvider) }
+                //Create Preview use case
+                val preview: Preview = Preview.Builder()
+                    .setTargetAspectRatio(getAspectRatio(quality))
+                    .build()
+                    .apply { setSurfaceProvider(cameraPreview.surfaceProvider) }
 
-            //Create Video Capture use case
-            val recorder = Recorder.Builder()
-                .setQualitySelector(qualitySelector)
-                .build()
-            videoCapture = VideoCapture.withOutput(recorder)
+                //Create Video Capture use case
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(qualitySelector)
+                    .build()
+                videoCapture = VideoCapture.withOutput(recorder)
 
-            cameraProvider.bindToLifecycle(
-                getLifeCycleOwner(),
-                cameraSelector,
-                preview,
-                videoCapture
-            ).apply {
-                cameraControl.enableTorch(previewVideoState.torchState == TorchState.ON)
+                cameraProvider.bindToLifecycle(
+                    getLifeCycleOwner(),
+                    cameraSelector,
+                    preview,
+                    videoCapture
+                ).apply {
+                    cameraControl.enableTorch(previewVideoState.torchState == TorchState.ON)
+                }
+                setupZoomAndTapToFocus(cameraPreview, camera)
             }
-            setupZoomAndTapToFocus(cameraPreview, camera)
         }
         return cameraPreview
     }

@@ -21,7 +21,7 @@ sealed class VideoEvent {
     object SetVideoQuality : VideoEvent()
     object FlashTapped : VideoEvent()
     object FlipTapped : VideoEvent()
-    object ThumbnailTapped : VideoEvent()
+    data class ThumbnailTapped(val uri: Uri) : VideoEvent()
     object DelayTimerTapped : VideoEvent()
     object SettingsTapped : VideoEvent()
 
