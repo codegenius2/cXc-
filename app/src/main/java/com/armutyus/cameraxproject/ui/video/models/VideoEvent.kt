@@ -2,20 +2,17 @@ package com.armutyus.cameraxproject.ui.video.models
 
 import android.net.Uri
 import androidx.camera.core.CameraInfo
-import androidx.camera.video.Quality
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
+import com.armutyus.cameraxproject.ui.video.VideoCaptureManager
 
 sealed class VideoEvent {
-    data class CameraInitialized(
-        val cameraLensInfo: HashMap<Int, CameraInfo>,
-        val qualities: List<Quality>
-    ) : VideoEvent()
+    data class CameraInitialized(val cameraLensInfo: HashMap<Int, CameraInfo>) : VideoEvent()
 
     data class OnProgress(val progress: Int) : VideoEvent()
     object RecordingPaused : VideoEvent()
     data class RecordingEnded(val outputUri: Uri) : VideoEvent()
-    data class Error(val throwable: Throwable?) : VideoEvent()
-    data class SelectCameraExtension(val extension: Int) : VideoEvent()
+    object Error : VideoEvent()
+    object SwitchToPhoto : VideoEvent()
     data class StateChanged(val cameraState: CameraState) : VideoEvent()
 
     object SetVideoQuality : VideoEvent()
@@ -25,9 +22,13 @@ sealed class VideoEvent {
     object DelayTimerTapped : VideoEvent()
     object SettingsTapped : VideoEvent()
 
-    data class RecordTapped(val timeMillis: Long = 0L) : VideoEvent()
-    object PauseTapped : VideoEvent()
-    object ResumeTapped : VideoEvent()
-    object StopTapped : VideoEvent()
+    data class RecordTapped(
+        val timeMillis: Long = 0L,
+        val videoCaptureManager: VideoCaptureManager
+    ) : VideoEvent()
+
+    data class PauseTapped(val videoCaptureManager: VideoCaptureManager) : VideoEvent()
+    data class ResumeTapped(val videoCaptureManager: VideoCaptureManager) : VideoEvent()
+    data class StopTapped(val videoCaptureManager: VideoCaptureManager) : VideoEvent()
 
 }

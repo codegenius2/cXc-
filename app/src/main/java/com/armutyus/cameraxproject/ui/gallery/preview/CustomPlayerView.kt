@@ -92,11 +92,11 @@ fun CustomPlayerView(
 
         CustomMediaController(
             modifier = Modifier.fillMaxSize(),
-            isVisible = { shouldShowController },
-            isPlaying = { isPlaying },
-            playbackState = { playbackState },
-            totalDuration = { totalDuration },
-            bufferedPercentage = { bufferedPercentage },
+            isVisible = shouldShowController,
+            isPlaying = isPlaying,
+            playbackState = playbackState,
+            totalDuration = totalDuration,
+            bufferedPercentage = bufferedPercentage,
             isFullScreen = isFullScreen,
             onReplay = { videoPlayer.seekBack() },
             onForward = { videoPlayer.seekForward() },
@@ -116,7 +116,7 @@ fun CustomPlayerView(
                 isPlaying = isPlaying.not()
             },
             onSeekChanged = { position -> videoPlayer.seekTo(position.toLong()) },
-            videoTimer = { videoTimer },
+            videoTimer = videoTimer,
             onFullScreenToggle = onFullScreenToggle
         )
     }

@@ -7,7 +7,6 @@ import android.view.Surface
 import android.view.View
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.TorchState
-import androidx.camera.extensions.ExtensionMode
 import androidx.camera.video.Quality
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -20,13 +19,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,17 +33,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.armutyus.cameraxproject.R
 import com.armutyus.cameraxproject.ui.photo.models.CameraModesItem
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
 import com.armutyus.cameraxproject.ui.video.models.PreviewVideoState
 import com.armutyus.cameraxproject.ui.video.models.RecordingStatus
-import com.armutyus.cameraxproject.ui.video.models.VideoEffect
 import com.armutyus.cameraxproject.ui.video.models.VideoEvent
 import com.armutyus.cameraxproject.util.*
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_10S
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_3S
+import com.armutyus.cameraxproject.util.Util.Companion.GENERAL_ERROR_MESSAGE
 import com.armutyus.cameraxproject.util.Util.Companion.TIMER_10S
 import com.armutyus.cameraxproject.util.Util.Companion.TIMER_3S
 import com.armutyus.cameraxproject.util.Util.Companion.TIMER_OFF
@@ -54,12 +51,11 @@ import java.io.File
 
 @Composable
 fun VideoScreen(
-    navController: NavController,
     factory: ViewModelProvider.Factory,
     videoViewModel: VideoViewModel = viewModel(factory = factory),
     onShowMessage: (message: String) -> Unit
 ) {
-    val state by videoViewModel.videoState.collectAsState()
+    val state by videoViewModel.videoState.observeAsState()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val view = LocalView.current
@@ -84,7 +80,7 @@ fun VideoScreen(
         }
     }
 
-    DisposableEffect(key1 = "key2") {
+    DisposableEffect(key1 = "orientation") {
         orientationEventListener.enable()
         onDispose {
             orientationEventListener.disable()
@@ -95,16 +91,8 @@ fun VideoScreen(
 
     val listener = remember(videoViewModel) {
         object : VideoCaptureManager.Listener {
-            override fun onInitialised(
-                cameraLensInfo: HashMap<Int, CameraInfo>,
-                supportedQualities: List<Quality>
-            ) {
-                videoViewModel.onEvent(
-                    VideoEvent.CameraInitialized(
-                        cameraLensInfo,
-                        supportedQualities
-                    )
-                )
+            override fun onInitialised(cameraLensInfo: HashMap<Int, CameraInfo>) {
+                videoViewModel.onEvent(VideoEvent.CameraInitialized(cameraLensInfo))
             }
 
             override fun onVideoStateChanged(cameraState: CameraState) {
@@ -124,7 +112,8 @@ fun VideoScreen(
             }
 
             override fun onError(throwable: Throwable?) {
-                videoViewModel.onEvent(VideoEvent.Error(throwable))
+                videoViewModel.onEvent(VideoEvent.Error)
+                onShowMessage(throwable?.localizedMessage ?: GENERAL_ERROR_MESSAGE)
             }
         }
     }
@@ -140,56 +129,33 @@ fun VideoScreen(
         File(it, VIDEO_DIR).apply { mkdirs() }
     }
 
-    val latestCapturedVideo = state.latestVideoUri ?: mediaDir?.listFiles()?.lastOrNull()?.toUri()
+    val latestCapturedVideo = state!!.latestVideoUri ?: mediaDir?.listFiles()?.lastOrNull()?.toUri()
 
     CompositionLocalProvider(LocalVideoCaptureManager provides videoCaptureManager) {
         VideoScreenContent(
-            availableExtensions = listOf(ExtensionMode.NONE, VIDEO_MODE),
-            extensionMode = state.extensionMode,
-            cameraLens = state.lens,
-            cameraState = state.cameraState,
-            delayTimer = state.delayTimer,
-            torchState = state.torchState,
-            hasFlashUnit = state.lensInfo[state.lens]?.hasFlashUnit() ?: false,
-            hasDualCamera = state.lensInfo.size > 1,
+            cameraLens = state!!.lens,
+            cameraState = state!!.cameraState,
+            videoCaptureManager = videoCaptureManager,
+            delayTimer = state!!.delayTimer,
+            torchState = state!!.torchState,
+            hasFlashUnit = state!!.lensInfo[state!!.lens]?.hasFlashUnit() ?: false,
+            hasDualCamera = state!!.lensInfo.size > 1,
             videoUri = latestCapturedVideo,
-            quality = state.quality,
-            recordedLength = state.recordedLength,
-            recordingStatus = state.recordingStatus,
+            quality = state!!.quality,
+            recordedLength = state!!.recordedLength,
+            recordingStatus = state!!.recordingStatus,
             rotation = rotation,
             view = view,
             onEvent = videoViewModel::onEvent
         )
     }
-
-    LaunchedEffect(videoViewModel) {
-        videoViewModel.videoEffect.collect {
-            when (it) {
-                is VideoEffect.NavigateTo -> {
-                    navController.navigate(it.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-                is VideoEffect.ShowMessage -> onShowMessage(it.message)
-                is VideoEffect.RecordVideo -> videoCaptureManager.startRecording(it.filePath)
-                VideoEffect.PauseRecording -> videoCaptureManager.pauseRecording()
-                VideoEffect.ResumeRecording -> videoCaptureManager.resumeRecording()
-                VideoEffect.StopRecording -> videoCaptureManager.stopRecording()
-            }
-        }
-    }
 }
 
 @Composable
 private fun VideoScreenContent(
-    availableExtensions: List<Int>,
-    extensionMode: Int,
     cameraLens: Int?,
     cameraState: CameraState,
+    videoCaptureManager: VideoCaptureManager,
     delayTimer: Int,
     @TorchState.State torchState: Int,
     hasFlashUnit: Boolean,
@@ -240,39 +206,40 @@ private fun VideoScreenContent(
                 verticalArrangement = Arrangement.Bottom
             ) {
                 VideoBottomControls(
-                    availableExtensions = availableExtensions,
-                    videoUri = videoUri,
-                    extensionMode = extensionMode,
                     recordingStatus = recordingStatus,
                     showFlipIcon = hasDualCamera,
                     rotation = rotation,
+                    videoUri = videoUri,
                     view = view,
-                    onThumbnailTapped = {
-                        onEvent(
-                            VideoEvent.ThumbnailTapped(
-                                videoUri ?: Uri.EMPTY
-                            )
-                        )
-                    },
+                    onCameraModeTapped = { onEvent(VideoEvent.SwitchToPhoto) },
                     onRecordTapped = {
                         when (delayTimer) {
-                            TIMER_OFF -> onEvent(VideoEvent.RecordTapped(0L))
-                            TIMER_3S -> onEvent(VideoEvent.RecordTapped(DELAY_3S))
-                            TIMER_10S -> onEvent(VideoEvent.RecordTapped(DELAY_10S))
+                            TIMER_OFF -> onEvent(VideoEvent.RecordTapped(0L, videoCaptureManager))
+                            TIMER_3S -> onEvent(
+                                VideoEvent.RecordTapped(
+                                    DELAY_3S,
+                                    videoCaptureManager
+                                )
+                            )
+                            TIMER_10S -> onEvent(
+                                VideoEvent.RecordTapped(
+                                    DELAY_10S,
+                                    videoCaptureManager
+                                )
+                            )
                         }
                     },
-                    onStopTapped = { onEvent(VideoEvent.StopTapped) },
-                    onPauseTapped = { onEvent(VideoEvent.PauseTapped) },
-                    onResumeTapped = { onEvent(VideoEvent.ResumeTapped) },
-                    onCameraModeTapped = { extension ->
-                        onEvent(
-                            VideoEvent.SelectCameraExtension(
-                                extension
-                            )
-                        )
-                    },
+                    onStopTapped = { onEvent(VideoEvent.StopTapped(videoCaptureManager)) },
+                    onPauseTapped = { onEvent(VideoEvent.PauseTapped(videoCaptureManager)) },
+                    onResumeTapped = { onEvent(VideoEvent.ResumeTapped(videoCaptureManager)) },
                     onFlipTapped = { onEvent(VideoEvent.FlipTapped) }
-                )
+                ) {
+                    onEvent(
+                        VideoEvent.ThumbnailTapped(
+                            videoUri ?: Uri.EMPTY
+                        )
+                    )
+                }
             }
         }
     }
@@ -327,14 +294,12 @@ internal fun VideoTopControls(
 @Composable
 internal fun VideoBottomControls(
     modifier: Modifier = Modifier,
-    availableExtensions: List<Int>,
-    extensionMode: Int,
     recordingStatus: RecordingStatus,
     showFlipIcon: Boolean,
     rotation: Int,
     videoUri: Uri?,
     view: View,
-    onCameraModeTapped: (Int) -> Unit,
+    onCameraModeTapped: () -> Unit,
     onRecordTapped: () -> Unit,
     onStopTapped: () -> Unit,
     onPauseTapped: () -> Unit,
@@ -342,18 +307,10 @@ internal fun VideoBottomControls(
     onFlipTapped: () -> Unit,
     onThumbnailTapped: () -> Unit
 ) {
-    val cameraModes = mapOf(
-        ExtensionMode.NONE to R.string.camera_mode_none,
-        VIDEO_MODE to R.string.camera_mode_video
+    val cameraModesList = listOf(
+        CameraModesItem(Util.PHOTO_MODE, "Photo", false),
+        CameraModesItem(VIDEO_MODE, "Video", true)
     )
-
-    val cameraModesList = availableExtensions.map {
-        CameraModesItem(
-            it,
-            stringResource(id = cameraModes[it]!!),
-            extensionMode == it
-        )
-    }
 
     val scrollState = rememberScrollState()
 
@@ -367,7 +324,7 @@ internal fun VideoBottomControls(
         LazyRow(contentPadding = PaddingValues(16.dp)) {
             items(cameraModesList) { cameraMode ->
                 CaptureModesRow(cameraModesItem = cameraMode) {
-                    onCameraModeTapped(it)
+                    onCameraModeTapped()
                 }
             }
         }
@@ -453,12 +410,12 @@ fun VideoControlsRow(
 @Composable
 fun CaptureModesRow(
     cameraModesItem: CameraModesItem,
-    onCameraModeTapped: (Int) -> Unit
+    onCameraModeTapped: () -> Unit
 ) {
     TextButton(
         onClick = {
             if (!cameraModesItem.selected) {
-                onCameraModeTapped(cameraModesItem.cameraMode)
+                onCameraModeTapped()
             }
         }
     ) {

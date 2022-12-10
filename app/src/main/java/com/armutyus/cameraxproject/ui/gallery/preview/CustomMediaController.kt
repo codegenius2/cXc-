@@ -16,12 +16,12 @@ import com.armutyus.cameraxproject.util.*
 @Composable
 fun CustomMediaController(
     modifier: Modifier = Modifier,
-    isVisible: () -> Boolean,
-    isPlaying: () -> Boolean,
-    videoTimer: () -> Float,
-    bufferedPercentage: () -> Int,
-    playbackState: () -> Int,
-    totalDuration: () -> Long,
+    isVisible: Boolean,
+    isPlaying: Boolean,
+    videoTimer: Float,
+    bufferedPercentage: Int,
+    playbackState: Int,
+    totalDuration: Long,
     isFullScreen: Boolean,
     onPauseToggle: () -> Unit,
     onReplay: () -> Unit,
@@ -30,17 +30,17 @@ fun CustomMediaController(
     onFullScreenToggle: (isFullScreen: Boolean) -> Unit
 ) {
 
-    val visible = remember(isVisible()) { isVisible() }
+    val visible = remember(isVisible) { isVisible }
 
-    val playing = remember(isPlaying()) { isPlaying() }
+    val playing = remember(isPlaying) { isPlaying }
 
-    val duration = remember(totalDuration()) { totalDuration().coerceAtLeast(0) }
+    val duration = remember(totalDuration) { totalDuration.coerceAtLeast(0) }
 
-    val timer = remember(videoTimer()) { videoTimer() }
+    val timer = remember(videoTimer) { videoTimer }
 
-    val buffer = remember(bufferedPercentage()) { bufferedPercentage() }
+    val buffer = remember(bufferedPercentage) { bufferedPercentage }
 
-    val playerState = remember(playbackState()) { playbackState() }
+    val playerState = remember(playbackState) { playbackState }
 
     AnimatedVisibility(
         modifier = modifier,

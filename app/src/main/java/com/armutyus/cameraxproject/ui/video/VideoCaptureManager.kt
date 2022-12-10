@@ -32,7 +32,8 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
     private lateinit var videoCapture: VideoCapture<Recorder>
     private lateinit var activeRecording: Recording
 
-    private val supportedQualities = mutableListOf<Quality>()
+    private val supportedQualitiesForBack = mutableListOf<Quality>()
+    private val supportedQualitiesForFront = mutableListOf<Quality>()
 
     var listener: Listener? = null
 
@@ -133,7 +134,11 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
                                 listOf(Quality.UHD, Quality.FHD, Quality.HD, Quality.SD)
                                     .contains(quality)
                             }.also {
-                                supportedQualities.addAll(it)
+                                if (camSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                                    supportedQualitiesForBack.addAll(it)
+                                } else {
+                                    supportedQualitiesForFront.addAll(it)
+                                }
                             }
                     }
                 } catch (exc: java.lang.Exception) {
@@ -141,7 +146,7 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
                 }
             }
         }
-        listener?.onInitialised(cameraLensInfo, supportedQualities)
+        listener?.onInitialised(cameraLensInfo)
         listener?.onVideoStateChanged(cameraState = CameraState.READY)
     }
 
@@ -174,7 +179,21 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
                 // create the user required QualitySelector (video resolution): we know this is
                 // supported, a valid qualitySelector will be created.
                 val quality = previewVideoState.quality
-                val qualitySelector = QualitySelector.from(quality)
+                val qualitySelector = QualitySelector.from(
+                    if (previewVideoState.cameraLens == CameraSelector.LENS_FACING_BACK) {
+                        if (supportedQualitiesForBack.contains(quality)) {
+                            quality
+                        } else {
+                            Quality.HIGHEST
+                        }
+                    } else {
+                        if (supportedQualitiesForFront.contains(quality)) {
+                            quality
+                        } else {
+                            Quality.HIGHEST
+                        }
+                    }
+                )
 
                 //Create Preview use case
                 val preview: Preview = Preview.Builder()
@@ -247,11 +266,7 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
     }
 
     interface Listener {
-        fun onInitialised(
-            cameraLensInfo: HashMap<Int, CameraInfo>,
-            supportedQualities: List<Quality>
-        )
-
+        fun onInitialised(cameraLensInfo: HashMap<Int, CameraInfo>)
         fun onVideoStateChanged(cameraState: CameraState)
         fun onProgress(progress: Int)
         fun recordingPaused()

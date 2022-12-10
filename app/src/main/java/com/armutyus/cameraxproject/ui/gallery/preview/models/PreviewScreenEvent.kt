@@ -12,5 +12,6 @@ sealed class PreviewScreenEvent {
     data class HideController(val isPlaying: Boolean) : PreviewScreenEvent()
     object EditTapped : PreviewScreenEvent()
     object PlayerViewTapped : PreviewScreenEvent()
+    object NavigateBack : PreviewScreenEvent()
 
 }

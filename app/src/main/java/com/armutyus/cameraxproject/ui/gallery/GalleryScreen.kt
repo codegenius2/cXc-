@@ -10,9 +10,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.sharp.*
+import androidx.compose.material.icons.sharp.ArrowBack
+import androidx.compose.material.icons.sharp.Checklist
+import androidx.compose.material.icons.sharp.PlayCircleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -24,29 +27,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.VideoFrameDecoder
 import com.armutyus.cameraxproject.R
-import com.armutyus.cameraxproject.ui.gallery.models.*
+import com.armutyus.cameraxproject.ui.gallery.models.BottomNavItem
+import com.armutyus.cameraxproject.ui.gallery.models.GalleryEvent
+import com.armutyus.cameraxproject.ui.gallery.models.MediaItem
 import com.armutyus.cameraxproject.ui.theme.CameraXProjectTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreen(
-    navController: NavController,
     factory: ViewModelProvider.Factory,
-    galleryViewModel: GalleryViewModel = viewModel(factory = factory),
-    onShowMessage: (message: String) -> Unit
+    galleryViewModel: GalleryViewModel = viewModel(factory = factory)
 ) {
 
-    val state by galleryViewModel.galleryState.collectAsState()
-    val media by galleryViewModel.mediaItems.collectAsState()
+    val state by galleryViewModel.galleryState.observeAsState()
+    val media by galleryViewModel.mediaItems.observeAsState(mapOf())
     val groupedPhotos =
-        media.values.flatten().filter { it.type == MediaItem.Type.PHOTO }.groupBy { it.takenTime }
+        media.values.flatten().filter { it.type == MediaItem.Type.PHOTO }
+            .groupBy { it.takenTime }
     val groupedVideos =
-        media.values.flatten().filter { it.type == MediaItem.Type.VIDEO }.groupBy { it.takenTime }
+        media.values.flatten().filter { it.type == MediaItem.Type.VIDEO }
+            .groupBy { it.takenTime }
 
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
@@ -62,41 +66,21 @@ fun GalleryScreen(
         BottomNavItem.Share
     )
 
+    LaunchedEffect(galleryViewModel) {
+        galleryViewModel.loadMedia()
+    }
+
     BackHandler {
-        if (state.selectableMode) {
+        if (state?.selectableMode == true) {
             galleryViewModel.onEvent(GalleryEvent.CancelSelectableMode)
         } else {
             activity.finish()
         }
     }
 
-    LaunchedEffect(galleryViewModel) {
-        galleryViewModel.loadMedia()
-        galleryViewModel.galleryEffect.collect {
-            when (it) {
-                is GalleryEffect.NavigateTo -> {
-                    navController.navigate(it.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination when
-                        // reselecting the same item
-                        launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
-                        restoreState = true
-                    }
-                }
-                is GalleryEffect.ShowMessage -> onShowMessage(it.message)
-            }
-        }
-    }
-
     Scaffold(
         topBar = {
-            if (state.selectableMode)
+            if (state?.selectableMode == true) {
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = { galleryViewModel.onEvent(GalleryEvent.CancelSelectableMode) }) {
@@ -117,6 +101,7 @@ fun GalleryScreen(
                         )
                     }
                 )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -131,7 +116,7 @@ fun GalleryScreen(
         },
         bottomBar = {
             NavigationBar {
-                if (!state.selectableMode) {
+                if (state?.selectableMode == false) {
                     bottomNavItems.forEach { bottomNavItem ->
                         NavigationBarItem(
                             selected = filterContent == bottomNavItem.filter,
@@ -187,8 +172,9 @@ fun GalleryScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            if (state.deleteTapped) {
-                val selectedItems = media.values.flatten().filter { item -> item.selected }
+            if (state?.deleteTapped == true) {
+                val selectedItems =
+                    media.values.flatten().filter { item -> item.selected }
                 if (selectedItems.isNotEmpty()) {
                     AlertDialog(onDismissRequest = { /* */ },
                         title = { Text(text = stringResource(id = R.string.delete)) },
@@ -217,17 +203,20 @@ fun GalleryScreen(
                 }
             }
 
-            GalleryScreenContent(
-                context = context,
-                groupedMedia = when (filterContent) {
-                    MediaItem.Filter.ALL -> media
-                    MediaItem.Filter.PHOTOS -> groupedPhotos
-                    MediaItem.Filter.VIDEOS -> groupedVideos
-                },
-                selectableMode = state.selectableMode,
-                galleryViewModel = galleryViewModel,
-                onEvent = galleryViewModel::onEvent
-            )
+            when (filterContent) {
+                MediaItem.Filter.ALL -> media
+                MediaItem.Filter.PHOTOS -> groupedPhotos
+                MediaItem.Filter.VIDEOS -> groupedVideos
+            }.let { map ->
+                GalleryScreenContent(
+                    context = context,
+                    groupedMedia = map,
+                    selectableMode = state?.selectableMode == true,
+                    galleryViewModel = galleryViewModel
+                ) { galleryEvent ->
+                    galleryViewModel.onEvent(galleryEvent)
+                }
+            }
         }
     }
 }
@@ -293,7 +282,7 @@ fun MediaItemBox(
     onItemLongClicked: () -> Unit
 ) {
 
-    var checked by remember { mutableStateOf(item.selected) }
+    var checked by remember(item.selected) { mutableStateOf(item.selected) }
 
     LaunchedEffect(checked) {
         snapshotFlow { checked }.collect {

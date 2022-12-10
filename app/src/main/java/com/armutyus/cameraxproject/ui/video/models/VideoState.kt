@@ -7,7 +7,6 @@ import androidx.camera.core.TorchState
 import androidx.camera.video.Quality
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
 import com.armutyus.cameraxproject.util.Util
-import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_MODE
 
 data class VideoState(
     val cameraState: CameraState = CameraState.READY,
@@ -17,7 +16,6 @@ data class VideoState(
     @ImageCapture.FlashMode val flashMode: Int = ImageCapture.FLASH_MODE_OFF,
     val supportedQualities: List<Quality> = mutableListOf(),
     val quality: Quality = Quality.HIGHEST,
-    val extensionMode: Int = VIDEO_MODE,
     val latestVideoUri: Uri? = null,
     val lensInfo: MutableMap<Int, CameraInfo> = mutableMapOf(),
     val recordedLength: Int = 0,

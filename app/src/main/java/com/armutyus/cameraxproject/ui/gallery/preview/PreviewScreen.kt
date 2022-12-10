@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +27,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -34,9 +34,7 @@ import com.armutyus.cameraxproject.R
 import com.armutyus.cameraxproject.ui.gallery.GalleryViewModel
 import com.armutyus.cameraxproject.ui.gallery.models.BottomNavItem
 import com.armutyus.cameraxproject.ui.gallery.models.MediaItem
-import com.armutyus.cameraxproject.ui.gallery.preview.models.PreviewScreenEffect
 import com.armutyus.cameraxproject.ui.gallery.preview.models.PreviewScreenEvent
-import com.armutyus.cameraxproject.util.Util.Companion.GENERAL_ERROR_MESSAGE
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_FORWARD_5
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_REPLAY_5
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -49,15 +47,19 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 @Composable
 fun PreviewScreen(
     filePath: String,
-    navController: NavController,
     factory: ViewModelProvider.Factory,
     previewViewModel: PreviewViewModel = viewModel(factory = factory),
-    galleryViewModel: GalleryViewModel = viewModel(factory = factory),
-    onShowMessage: (message: String) -> Unit
+    galleryViewModel: GalleryViewModel = viewModel(factory = factory)
 ) {
+    DisposableEffect(Unit) {
+        galleryViewModel.loadMedia()
+        onDispose {
+            galleryViewModel.loadMedia().cancel()
+        }
+    }
     val context = LocalContext.current
-    val media by galleryViewModel.mediaItems.collectAsState()
-    val state by previewViewModel.previewScreenState.collectAsState()
+    val media by galleryViewModel.mediaItems.observeAsState(mapOf())
+    val state by previewViewModel.previewScreenState.observeAsState()
     var scale by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -75,40 +77,17 @@ fun PreviewScreen(
         BottomNavItem.Delete
     )
 
-    LaunchedEffect(previewViewModel) {
-        previewViewModel.previewEffect.collect {
-            when (it) {
-                is PreviewScreenEffect.NavigateTo -> {
-                    navController.navigate(it.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination when
-                        // reselecting the same item
-                        launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
-                        restoreState = true
-                    }
-                }
-                is PreviewScreenEffect.ShowMessage -> onShowMessage(it.message)
-            }
-        }
-    }
-
     Scaffold(
         topBar = {
             AnimatedVisibility(
                 modifier = Modifier,
-                visible = state.showBars,
+                visible = state!!.showBars,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 TopAppBar(
                     navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
+                        IconButton(onClick = { previewViewModel.onEvent(PreviewScreenEvent.NavigateBack) }) {
                             Icon(
                                 imageVector = Icons.Sharp.ArrowBack,
                                 contentDescription = stringResource(id = R.string.cancel)
@@ -130,7 +109,7 @@ fun PreviewScreen(
         bottomBar = {
             AnimatedVisibility(
                 modifier = Modifier,
-                visible = state.showBars,
+                visible = state!!.showBars,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -279,21 +258,21 @@ fun PreviewScreen(
                         MediaItem.Type.VIDEO -> {
                             VideoPlaybackContent(
                                 currentList[page].uri,
-                                state.isFullScreen,
-                                state.showMediaController,
+                                state!!.isFullScreen,
+                                state!!.showMediaController,
                                 {
                                     previewViewModel.onEvent(
                                         PreviewScreenEvent.FullScreenToggleTapped(
-                                            state.isFullScreen
+                                            state!!.isFullScreen
                                         )
                                     )
                                 },
                                 { previewViewModel.onEvent(PreviewScreenEvent.HideController(it)) },
                                 { previewViewModel.onEvent(PreviewScreenEvent.PlayerViewTapped) },
-                                { navController.popBackStack() }
+                                { previewViewModel.onEvent(PreviewScreenEvent.NavigateBack) }
                             )
                         }
-                        else -> onShowMessage(GENERAL_ERROR_MESSAGE)
+                        else -> {}
                     }
                 }
             }

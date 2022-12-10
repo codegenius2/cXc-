@@ -21,7 +21,8 @@ class Util {
         const val RATIO_16_9_VALUE = 16.0 / 9.0
         const val CAPTURE_FAIL = "Image capture failed."
         const val GENERAL_ERROR_MESSAGE = "Something went wrong."
-        const val VIDEO_MODE = 6
+        const val PHOTO_MODE = 0
+        const val VIDEO_MODE = 1
         const val UNKNOWN_ORIENTATION = -1
 
         const val GALLERY_ROUTE = "gallery_screen"

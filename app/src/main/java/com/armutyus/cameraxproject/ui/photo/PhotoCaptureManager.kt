@@ -9,8 +9,6 @@ import android.view.*
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.camera.core.*
-import androidx.camera.extensions.ExtensionMode
-import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.compositionLocalOf
@@ -39,7 +37,6 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
 
     var photoListener: PhotoListener = object : PhotoListener {
         override fun onInitialised(cameraLensInfo: HashMap<Int, CameraInfo>) {}
-        override fun onExtensionModeChanged(availableExtensions: List<Int>) {}
         override fun onSuccess(imageResult: ImageCapture.OutputFileResults) {}
         override fun onError(exception: Exception) {}
     }
@@ -129,40 +126,6 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
         photoListener.onInitialised(cameraLensInfo)
     }
 
-    fun queryExtensions(previewPhotoState: PreviewPhotoState) {
-        getLifeCycleOwner().lifecycleScope.launch {
-            val cameraSelector = CameraSelector.Builder()
-                .requireLensFacing(previewPhotoState.cameraLens)
-                .build()
-
-            cameraProviderFuture = ProcessCameraProvider.getInstance(getContext())
-
-            val cameraProvider = cameraProviderFuture.await()
-            val extensionsManager =
-                ExtensionsManager.getInstanceAsync(getContext(), cameraProvider).await()
-
-            cameraProvider.unbindAll()
-
-            // get the supported extensions for the selected camera lens by filtering the full list
-            // of extensions and checking each one if it's available
-            val availableExtensions = listOf(
-                ExtensionMode.AUTO,
-                ExtensionMode.BOKEH,
-                ExtensionMode.HDR,
-                ExtensionMode.NIGHT,
-                ExtensionMode.FACE_RETOUCH
-            ).filter { extensionMode ->
-                extensionsManager.isExtensionAvailable(cameraSelector, extensionMode)
-            }
-
-            photoListener.onExtensionModeChanged(
-                availableExtensions = listOf(
-                    ExtensionMode.NONE
-                ) + availableExtensions
-            )
-        }
-    }
-
     /**
      * Takes a [previewPhotoState] argument to determine the camera options
      *
@@ -182,8 +145,6 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
                 cameraProviderFuture = ProcessCameraProvider.getInstance(getContext())
 
                 val cameraProvider = cameraProviderFuture.await()
-                val extensionsManager =
-                    ExtensionsManager.getInstanceAsync(getContext(), cameraProvider).await()
 
                 cameraProvider.unbindAll()
 
@@ -198,20 +159,8 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
 
                 val rotation = getView().rotation
 
-                //Select a camera lens with or without extensions
-                val cameraSelector: CameraSelector =
-                    if (previewPhotoState.extensionMode == ExtensionMode.NONE) {
-                        CameraSelector.Builder()
-                            .requireLensFacing(previewPhotoState.cameraLens)
-                            .build()
-                    } else {
-                        extensionsManager.getExtensionEnabledCameraSelector(
-                            CameraSelector.Builder()
-                                .requireLensFacing(previewPhotoState.cameraLens)
-                                .build(),
-                            previewPhotoState.extensionMode
-                        )
-                    }
+                val cameraSelector: CameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(previewPhotoState.cameraLens).build()
 
                 val camera = cameraProvider.bindToLifecycle(getLifeCycleOwner(), cameraSelector)
 
@@ -359,7 +308,6 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
 
     interface PhotoListener {
         fun onInitialised(cameraLensInfo: HashMap<Int, CameraInfo>)
-        fun onExtensionModeChanged(availableExtensions: List<Int>)
         fun onSuccess(imageResult: ImageCapture.OutputFileResults)
         fun onError(exception: Exception)
     }
