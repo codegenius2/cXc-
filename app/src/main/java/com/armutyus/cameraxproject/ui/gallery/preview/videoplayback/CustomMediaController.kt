@@ -1,4 +1,4 @@
-package com.armutyus.cameraxproject.ui.gallery.preview
+package com.armutyus.cameraxproject.ui.gallery.preview.videoplayback
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background

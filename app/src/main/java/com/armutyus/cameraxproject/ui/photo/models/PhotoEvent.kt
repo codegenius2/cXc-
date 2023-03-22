@@ -1,5 +1,6 @@
 package com.armutyus.cameraxproject.ui.photo.models
 
+import android.content.Context
 import android.net.Uri
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.ImageCapture
@@ -13,11 +14,12 @@ sealed class PhotoEvent {
         val photoCaptureManager: PhotoCaptureManager
     ) : PhotoEvent()
 
+    data class EditIconTapped(val context: Context) : PhotoEvent()
+
     data class ThumbnailTapped(val uri: Uri) : PhotoEvent()
 
     object SwitchToVideo : PhotoEvent()
     object DelayTimerTapped : PhotoEvent()
     object FlashTapped : PhotoEvent()
     object FlipTapped : PhotoEvent()
-    object SettingsTapped : PhotoEvent()
 }

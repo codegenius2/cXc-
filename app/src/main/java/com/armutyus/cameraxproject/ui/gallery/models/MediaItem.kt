@@ -10,5 +10,5 @@ data class MediaItem(
     val type: Type? = Type.UNKNOWN
 ) {
     enum class Type { UNKNOWN, PHOTO, VIDEO }
-    enum class Filter { ALL, PHOTOS, VIDEOS }
+    enum class Filter { ALL, PHOTOS, VIDEOS, EDITS }
 }

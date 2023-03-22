@@ -39,6 +39,7 @@ import com.armutyus.cameraxproject.ui.video.models.PreviewVideoState
 import com.armutyus.cameraxproject.ui.video.models.RecordingStatus
 import com.armutyus.cameraxproject.ui.video.models.VideoEvent
 import com.armutyus.cameraxproject.util.*
+import com.armutyus.cameraxproject.util.Util.Companion.APP_NAME
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_10S
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_3S
 import com.armutyus.cameraxproject.util.Util.Companion.GENERAL_ERROR_MESSAGE
@@ -125,7 +126,7 @@ fun VideoScreen(
             .apply { this.listener = listener }
     }
 
-    val mediaDir = context.getExternalFilesDir("cameraXproject")?.let {
+    val mediaDir = context.getExternalFilesDir(APP_NAME)?.let {
         File(it, VIDEO_DIR).apply { mkdirs() }
     }
 
@@ -189,11 +190,8 @@ private fun VideoScreenContent(
                         rotation = rotation,
                         quality = quality,
                         onDelayTimerTapped = { onEvent(VideoEvent.DelayTimerTapped) },
-                        onFlashTapped = { onEvent(VideoEvent.FlashTapped) },
-                        onQualitySelectorTapped = { onEvent(VideoEvent.SetVideoQuality) }
-                    ) {
-                        onEvent(VideoEvent.SettingsTapped)
-                    }
+                        onFlashTapped = { onEvent(VideoEvent.FlashTapped) }
+                    ) { onEvent(VideoEvent.SetVideoQuality) }
                 }
                 if (recordedLength > 0) {
                     Timer(
@@ -254,8 +252,7 @@ internal fun VideoTopControls(
     quality: Quality,
     onDelayTimerTapped: () -> Unit,
     onFlashTapped: () -> Unit,
-    onQualitySelectorTapped: () -> Unit,
-    onSettingsTapped: () -> Unit
+    onQualitySelectorTapped: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -285,7 +282,6 @@ internal fun VideoTopControls(
             QualitySelectorIcon(rotation = rotation, quality = quality) {
                 onQualitySelectorTapped()
             }
-            SettingsIcon(rotation = rotation, onTapped = onSettingsTapped)
         }
     }
 }

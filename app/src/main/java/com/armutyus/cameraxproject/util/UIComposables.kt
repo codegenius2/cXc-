@@ -36,9 +36,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
-import coil.decode.VideoFrameDecoder
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.armutyus.cameraxproject.R
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
@@ -104,18 +103,14 @@ fun CapturedVideoThumbnailIcon(
     rotation: Int,
     onTapped: () -> Unit
 ) {
-    val imageLoader = ImageLoader.Builder(LocalContext.current)
-        .components {
-            add(VideoFrameDecoder.Factory())
-        }.crossfade(true)
-        .build()
 
+    val context = LocalContext.current
     val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current)
+        model = ImageRequest.Builder(context)
             .data(data = imageUri)
             .crossfade(true)
             .build(),
-        imageLoader = imageLoader,
+        imageLoader = context.imageLoader,
         filterQuality = FilterQuality.Medium
     )
     IconButton(
@@ -290,7 +285,7 @@ fun CameraPauseIconSmall(modifier: Modifier = Modifier, onTapped: () -> Unit) {
 
 
 @Composable
-fun CameraPlayIconSmall(modifier: Modifier = Modifier, rotation: Int, onTapped: () -> Unit) {
+fun CameraPlayIconSmall(rotation: Int, onTapped: () -> Unit) {
     IconButton(
         modifier = Modifier
             .rotate(
@@ -514,7 +509,7 @@ fun CameraEditIcon(rotation: Int, onTapped: () -> Unit) {
                     else -> 0f
                 }
             ),
-        onClick = { },
+        onClick = { onTapped() },
         colors = IconButtonDefaults.iconButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         ),

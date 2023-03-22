@@ -2,11 +2,9 @@ package com.armutyus.cameraxproject.ui.photo
 
 import android.content.pm.ActivityInfo
 import android.net.Uri
-import android.os.Build
 import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.border
@@ -34,8 +32,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.armutyus.cameraxproject.ui.photo.models.*
+import com.armutyus.cameraxproject.ui.photo.models.CameraModesItem
+import com.armutyus.cameraxproject.ui.photo.models.CameraState
+import com.armutyus.cameraxproject.ui.photo.models.PhotoEvent
+import com.armutyus.cameraxproject.ui.photo.models.PreviewPhotoState
 import com.armutyus.cameraxproject.util.*
+import com.armutyus.cameraxproject.util.Util.Companion.APP_NAME
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_10S
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_3S
 import com.armutyus.cameraxproject.util.Util.Companion.GENERAL_ERROR_MESSAGE
@@ -47,7 +49,6 @@ import com.armutyus.cameraxproject.util.Util.Companion.TIMER_OFF
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_MODE
 import java.io.File
 
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun PhotoScreen(
     factory: ViewModelProvider.Factory,
@@ -113,7 +114,7 @@ fun PhotoScreen(
             .apply { photoListener = listener }
     }
 
-    val mediaDir = context.getExternalFilesDir("cameraXproject")?.let {
+    val mediaDir = context.getExternalFilesDir(APP_NAME)?.let {
         File(it, PHOTO_DIR).apply { mkdirs() }
     }
 
@@ -136,7 +137,7 @@ fun PhotoScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
+
 @Composable
 private fun PhotoScreenContent(
     cameraLens: Int?,
@@ -163,20 +164,15 @@ private fun PhotoScreenContent(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val context = LocalContext.current
                 TopControls(
                     showFlashIcon = hasFlashUnit,
                     delayTimer = delayTimer,
                     flashMode = flashMode,
                     rotation = rotation,
-                    onDelayTimerTapped = { onEvent(PhotoEvent.DelayTimerTapped) },
-                    onFlashTapped = { onEvent(PhotoEvent.FlashTapped) },
-                    onSettingsTapped = { onEvent(PhotoEvent.SettingsTapped) }
-                )
-                /*if (captureWithDelay == DELAY_3S) {
-                    DelayTimer(millisInFuture = captureWithDelay.toLong())
-                } else if (captureWithDelay == DELAY_10S) {
-                    DelayTimer(millisInFuture = captureWithDelay.toLong())
-                }*/
+                    onEditIconTapped = { onEvent(PhotoEvent.EditIconTapped(context)) },
+                    onDelayTimerTapped = { onEvent(PhotoEvent.DelayTimerTapped) }
+                ) { onEvent(PhotoEvent.FlashTapped) }
             }
             Column(
                 modifier = Modifier.align(Alignment.BottomCenter),
@@ -218,9 +214,9 @@ internal fun TopControls(
     delayTimer: Int,
     flashMode: Int,
     rotation: Int,
+    onEditIconTapped: () -> Unit,
     onDelayTimerTapped: () -> Unit,
-    onFlashTapped: () -> Unit,
-    onSettingsTapped: () -> Unit
+    onFlashTapped: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -247,8 +243,7 @@ internal fun TopControls(
                 flashMode = flashMode,
                 onTapped = onFlashTapped
             )
-            CameraEditIcon(rotation = rotation) {}
-            SettingsIcon(rotation = rotation, onTapped = onSettingsTapped)
+            CameraEditIcon(rotation = rotation) { onEditIconTapped() }
         }
     }
 }
@@ -359,7 +354,6 @@ fun CameraModesRow(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 private fun CameraPreview(
     cameraState: CameraState,

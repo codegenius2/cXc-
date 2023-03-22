@@ -12,9 +12,11 @@ import androidx.annotation.RequiresApi
 class Util {
     companion object {
         const val TAG = "CameraXProject"
+        const val APP_NAME = "cXc"
         const val FILENAME = "yyyy-MM-dd-HH-mm-ss-SSS"
         const val PHOTO_DIR = "Photos"
         const val VIDEO_DIR = "Videos"
+        const val EDIT_DIR = "Edited"
         const val PHOTO_EXTENSION = "jpg"
         const val VIDEO_EXTENSION = "mp4"
         const val RATIO_4_3_VALUE = 4.0 / 3.0
@@ -23,11 +25,18 @@ class Util {
         const val GENERAL_ERROR_MESSAGE = "Something went wrong."
         const val PHOTO_MODE = 0
         const val VIDEO_MODE = 1
+        const val FILTER_MODE = 2
+        const val CROP_MODE = 3
+        const val FILTER_NAME = "Filter"
+        const val CROP_NAME = "Crop"
         const val UNKNOWN_ORIENTATION = -1
+        const val ALL_CONTENT = "ALL"
+        const val PHOTO_CONTENT = "PHOTOS"
+        const val VIDEO_CONTENT = "VIDEOS"
+        const val EDIT_CONTENT = "EDITS"
 
         const val GALLERY_ROUTE = "gallery_screen"
         const val PHOTO_ROUTE = "photo_screen"
-        const val SETTINGS_ROUTE = "settings_screen"
         const val VIDEO_ROUTE = "video_screen"
 
         const val TIMER_OFF = 0

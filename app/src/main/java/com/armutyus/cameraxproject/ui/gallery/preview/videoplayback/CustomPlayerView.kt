@@ -1,4 +1,4 @@
-package com.armutyus.cameraxproject.ui.gallery.preview
+package com.armutyus.cameraxproject.ui.gallery.preview.videoplayback
 
 import android.net.Uri
 import android.view.ViewGroup

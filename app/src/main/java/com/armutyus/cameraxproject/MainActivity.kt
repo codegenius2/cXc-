@@ -1,26 +1,27 @@
 package com.armutyus.cameraxproject
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import androidx.navigation.*
 import com.armutyus.cameraxproject.ui.gallery.GalleryScreen
 import com.armutyus.cameraxproject.ui.gallery.GalleryViewModel
 import com.armutyus.cameraxproject.ui.gallery.preview.PreviewScreen
 import com.armutyus.cameraxproject.ui.gallery.preview.PreviewViewModel
+import com.armutyus.cameraxproject.ui.gallery.preview.editmedia.repo.EditMediaRepositoryImpl
 import com.armutyus.cameraxproject.ui.photo.PhotoScreen
 import com.armutyus.cameraxproject.ui.photo.PhotoViewModel
 import com.armutyus.cameraxproject.ui.theme.CameraXProjectTheme
@@ -28,9 +29,9 @@ import com.armutyus.cameraxproject.ui.video.VideoScreen
 import com.armutyus.cameraxproject.ui.video.VideoViewModel
 import com.armutyus.cameraxproject.util.FileManager
 import com.armutyus.cameraxproject.util.Permissions
+import com.armutyus.cameraxproject.util.Util.Companion.ALL_CONTENT
 import com.armutyus.cameraxproject.util.Util.Companion.GALLERY_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_ROUTE
-import com.armutyus.cameraxproject.util.Util.Companion.SETTINGS_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_ROUTE
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
@@ -41,12 +42,13 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 class MainActivity : ComponentActivity() {
 
     private val fileManager = FileManager(this)
+    private val editMediaRepository = EditMediaRepositoryImpl(this)
 
     @UnstableApi
     @OptIn(ExperimentalAnimationApi::class)
-    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             CameraXProjectTheme {
                 val navController = rememberAnimatedNavController()
@@ -57,7 +59,11 @@ class MainActivity : ComponentActivity() {
                         if (modelClass.isAssignableFrom(PhotoViewModel::class.java))
                             return PhotoViewModel(fileManager, navController) as T
                         if (modelClass.isAssignableFrom(PreviewViewModel::class.java))
-                            return PreviewViewModel(navController) as T
+                            return PreviewViewModel(
+                                editMediaRepository,
+                                fileManager,
+                                navController
+                            ) as T
                         if (modelClass.isAssignableFrom(VideoViewModel::class.java))
                             return VideoViewModel(fileManager, navController) as T
                         if (modelClass.isAssignableFrom(GalleryViewModel::class.java))
@@ -65,104 +71,50 @@ class MainActivity : ComponentActivity() {
                         throw IllegalArgumentException(getString(R.string.unknown_viewmodel))
                     }
                 }
-                Permissions(permissionGrantedContent = {
-                    AnimatedNavHost(
-                        navController = navController,
-                        startDestination = GALLERY_ROUTE
-                    ) {
-                        composable(
-                            GALLERY_ROUTE,
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            },
-                            popEnterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            popExitTransition = {
-                                fadeOut(tween(700))
-                            }
+
+                Permissions(
+                    permissionGrantedContent = {
+                        AnimatedNavHost(
+                            navController = navController,
+                            startDestination = GALLERY_ROUTE
                         ) {
-                            GalleryScreen(
-                                factory = viewModelFactory,
-                            )
-                        }
-                        composable(
-                            PHOTO_ROUTE,
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            },
-                            popEnterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            popExitTransition = {
-                                fadeOut(tween(700))
+                            composableWithDefaultAnimation(GALLERY_ROUTE) {
+                                GalleryScreen(factory = viewModelFactory)
                             }
-                        ) {
-                            PhotoScreen(
-                                factory = viewModelFactory
-                            ) {
-                                showMessage(this@MainActivity, it)
-                            }
-                        }
-                        composable(
-                            VIDEO_ROUTE,
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            },
-                            popEnterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            popExitTransition = {
-                                fadeOut(tween(700))
-                            }
-                        ) {
-                            VideoScreen(
-                                factory = viewModelFactory
-                            ) {
-                                showMessage(this@MainActivity, it)
-                            }
-                        }
-                        composable(
-                            route = "preview_screen/?filePath={filePath}",
-                            arguments = listOf(
-                                navArgument("filePath") {
-                                    type = NavType.StringType
-                                    defaultValue = ""
+                            composableWithDefaultAnimation(route = PHOTO_ROUTE) {
+                                PhotoScreen(factory = viewModelFactory) {
+                                    showMessage(this@MainActivity, it)
                                 }
-                            ),
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            },
-                            popEnterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            popExitTransition = {
-                                fadeOut(tween(700))
                             }
-                        ) {
-                            val filePath = remember { it.arguments?.getString("filePath") }
-                            PreviewScreen(
-                                filePath = filePath ?: "",
-                                factory = viewModelFactory
-                            )
+                            composableWithDefaultAnimation(route = VIDEO_ROUTE) {
+                                VideoScreen(factory = viewModelFactory) {
+                                    showMessage(this@MainActivity, it)
+                                }
+                            }
+                            composableWithDefaultAnimation(
+                                route = "preview_screen/?filePath={filePath}/?contentFilter={contentFilter}",
+                                arguments = listOf(
+                                    navArgument("filePath") {
+                                        type = NavType.StringType
+                                        defaultValue = ""
+                                    },
+                                    navArgument("contentFilter") {
+                                        type = NavType.StringType
+                                        defaultValue = ALL_CONTENT
+                                    }
+                                ),
+                            ) {
+                                val filePath = remember { it.arguments?.getString("filePath") }
+                                val contentFilter =
+                                    remember { it.arguments?.getString("contentFilter") }
+                                PreviewScreen(
+                                    contentFilter = contentFilter ?: ALL_CONTENT,
+                                    filePath = filePath ?: "",
+                                    factory = viewModelFactory
+                                )
+                            }
                         }
-                        composable(SETTINGS_ROUTE) {
-                            //SettingsScreen(navController = navController)
-                        }
-                    }
-                })
+                    })
             }
         }
     }
@@ -170,4 +122,29 @@ class MainActivity : ComponentActivity() {
 
 private fun showMessage(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+private fun NavGraphBuilder.composableWithDefaultAnimation(
+    route: String,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
+) {
+    composable(
+        route = route,
+        arguments = arguments,
+        enterTransition = {
+            fadeIn(tween(700))
+        },
+        exitTransition = {
+            fadeOut(tween(700))
+        },
+        popEnterTransition = {
+            fadeIn(tween(700))
+        },
+        popExitTransition = {
+            fadeOut(tween(700))
+        },
+        content = content
+    )
 }

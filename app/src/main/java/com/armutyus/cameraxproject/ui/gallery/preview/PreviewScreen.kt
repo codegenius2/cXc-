@@ -1,6 +1,9 @@
 package com.armutyus.cameraxproject.ui.gallery.preview
 
+import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,7 +29,6 @@ import androidx.core.net.toFile
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -34,18 +36,26 @@ import com.armutyus.cameraxproject.R
 import com.armutyus.cameraxproject.ui.gallery.GalleryViewModel
 import com.armutyus.cameraxproject.ui.gallery.models.BottomNavItem
 import com.armutyus.cameraxproject.ui.gallery.models.MediaItem
+import com.armutyus.cameraxproject.ui.gallery.preview.editmedia.EditImageContent
 import com.armutyus.cameraxproject.ui.gallery.preview.models.PreviewScreenEvent
-import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_FORWARD_5
-import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_REPLAY_5
+import com.armutyus.cameraxproject.ui.gallery.preview.videoplayback.VideoPlaybackContent
+import com.armutyus.cameraxproject.util.LockScreenOrientation
+import com.armutyus.cameraxproject.util.Util.Companion.ALL_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.EDIT_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.FILTER_NAME
+import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_CONTENT
+import com.armutyus.cameraxproject.util.toBitmap
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import jp.co.cyberagent.android.gpuimage.GPUImage
 
 @UnstableApi
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPagerApi::class)
 @Composable
 fun PreviewScreen(
+    contentFilter: String,
     filePath: String,
     factory: ViewModelProvider.Factory,
     previewViewModel: PreviewViewModel = viewModel(factory = factory),
@@ -57,19 +67,33 @@ fun PreviewScreen(
             galleryViewModel.loadMedia().cancel()
         }
     }
+
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
     val context = LocalContext.current
     val media by galleryViewModel.mediaItems.observeAsState(mapOf())
     val state by previewViewModel.previewScreenState.observeAsState()
+    var isDeleteTapped by remember { mutableStateOf(false) }
     var scale by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     var rotationState by remember { mutableStateOf(0f) }
     var zoomState by remember { mutableStateOf(false) }
 
-    val currentFile = Uri.parse(filePath).toFile()
+
+    val initialFile = Uri.parse(filePath).toFile()
+    var currentFile by remember { mutableStateOf(initialFile) }
     val fileName = currentFile.nameWithoutExtension
-    val takenDate = fileName.substring(0, 10).replace("-", "/")
-    val takenTime = fileName.substring(11, 16).replace("-", ":")
+    val takenDate = if (fileName.startsWith("cXc")) {
+        fileName.substring(4, 14).replace("-", "/")
+    } else {
+        fileName.substring(0, 10).replace("-", "/")
+    }
+    val takenTime = if (fileName.startsWith("cXc")) {
+        fileName.substring(15, 20).replace("-", ":")
+    } else {
+        fileName.substring(11, 16).replace("-", ":")
+    }
 
     val bottomNavItems = listOf(
         BottomNavItem.Share,
@@ -138,14 +162,18 @@ fun PreviewScreen(
                                         )
                                     }
                                     BottomNavItem.EditItem -> {
-                                        previewViewModel.onEvent(PreviewScreenEvent.EditTapped)
+                                        if (currentFile.extension == "mp4") {
+                                            Toast.makeText(
+                                                context,
+                                                R.string.feature_not_available,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            previewViewModel.onEvent(PreviewScreenEvent.EditTapped)
+                                        }
                                     }
                                     BottomNavItem.Delete -> {
-                                        previewViewModel.onEvent(
-                                            PreviewScreenEvent.DeleteTapped(
-                                                currentFile
-                                            )
-                                        )
+                                        isDeleteTapped = true
                                     }
                                     else -> {}
                                 }
@@ -161,12 +189,49 @@ fun PreviewScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            val currentList = media.values.flatten()
+            val groupedMedia = media.values.flatten().filterNot { it.name.startsWith("cXc") }
+            val groupedPhotos = media.values.flatten()
+                .filter { it.type == MediaItem.Type.PHOTO && it.name.startsWith("2") }
+            val groupedVideos = media.values.flatten().filter { it.type == MediaItem.Type.VIDEO }
+            val editedMedia = media.values.flatten().filter { it.name.startsWith("cXc") }
+            val currentList = when (contentFilter) {
+                ALL_CONTENT -> groupedMedia
+                PHOTO_CONTENT -> groupedPhotos
+                VIDEO_CONTENT -> groupedVideos
+                EDIT_CONTENT -> editedMedia
+                else -> groupedMedia
+            }
             val count = currentList.size
             val initialItem =
-                currentList.firstOrNull { mediaItem -> mediaItem.name == currentFile.name }
+                currentList.firstOrNull { mediaItem -> mediaItem.name == initialFile.name }
             val initialItemIndex by remember { mutableStateOf(currentList.indexOf(initialItem)) }
             val pagerState = rememberPagerState(initialItemIndex)
+
+            currentFile = currentList[pagerState.currentPage].uri!!.toFile()
+
+            if (isDeleteTapped) {
+                AlertDialog(onDismissRequest = { /* */ },
+                    title = { Text(text = stringResource(id = R.string.delete)) },
+                    text = { Text(text = stringResource(id = R.string.delete_item)) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                previewViewModel.onEvent(PreviewScreenEvent.DeleteTapped(currentFile))
+                            }
+                        ) {
+                            Text(text = stringResource(id = R.string.delete))
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = {
+                            isDeleteTapped = false
+                        }
+                        ) {
+                            Text(text = stringResource(id = R.string.cancel))
+                        }
+                    }
+                )
+            }
 
             HorizontalPager(
                 modifier = Modifier.fillMaxSize(),
@@ -181,23 +246,26 @@ fun PreviewScreen(
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = { offset ->
-                                    offset.getDistance()
-                                    if (scale >= 2f) {
+                                    if (scale >= 4.5f) {
                                         scale = 1f
                                         offsetX = 0f
                                         offsetY = 0f
-                                    } else {
-                                        scale = 3f
-                                        offsetX -= offset.x
-                                        offsetY -= offset.y
+                                    } else if (scale >= 2f) {
+                                        scale = 5f
+                                        /*offsetX -= offset.x
+                                        offsetY -= offset.y*/
                                         rotationState = 0f
                                         zoomState = false
-                                        println("x: ${offset.x}")
-                                        println("y: ${offset.y}")
+                                    } else {
+                                        scale = 2.5f
+                                        /*offsetX -= offset.x
+                                        offsetY -= offset.y*/
+                                        rotationState = 0f
+                                        zoomState = false
                                     }
                                 },
                                 onTap = {
-                                    if (!zoomState) previewViewModel.onEvent(
+                                    if (!zoomState && state?.isInEditMode == false) previewViewModel.onEvent(
                                         PreviewScreenEvent.ChangeBarState(zoomState)
                                     )
                                 }
@@ -233,25 +301,86 @@ fun PreviewScreen(
                 ) {
                     when (currentList[page].type) {
                         MediaItem.Type.PHOTO -> {
-                            SubcomposeAsyncImage(
-                                model = currentList[page].uri,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .graphicsLayer(
-                                        scaleX = maxOf(1f, minOf(3f, scale)),
-                                        scaleY = maxOf(1f, minOf(3f, scale)),
-                                        rotationZ = rotationState,
-                                        translationX = offsetX,
-                                        translationY = offsetY
-                                    ),
-                                filterQuality = FilterQuality.High,
-                                contentDescription = ""
-                            ) {
-                                val painterState = painter.state
-                                if (painterState is AsyncImagePainter.State.Loading || painterState is AsyncImagePainter.State.Error) {
-                                    LinearProgressIndicator()
-                                } else {
-                                    SubcomposeAsyncImageContent()
+                            if (state?.isInEditMode == true) {
+                                zoomState = true
+                                val gpuImage = GPUImage(context)
+
+                                var originalImageBitmap by remember(page) {
+                                    mutableStateOf<Bitmap?>(
+                                        null
+                                    )
+                                }
+
+                                val hasFilteredImage by previewViewModel.imageHasFilter.observeAsState()
+                                val isImageCropped by previewViewModel.isImageCropped.observeAsState()
+                                val imageFilters by previewViewModel.imageFilterList.observeAsState()
+                                val editedImageBitmap by previewViewModel.editedBitmap.observeAsState()
+                                val croppedImageBitmap by previewViewModel.croppedBitmap.observeAsState()
+
+                                LaunchedEffect(page, croppedImageBitmap) {
+                                    originalImageBitmap =
+                                        currentList[page].uri!!.toBitmap(context)
+                                    if (isImageCropped == true) {
+                                        previewViewModel.loadImageFilters(croppedImageBitmap)
+                                    } else {
+                                        previewViewModel.loadImageFilters(originalImageBitmap)
+                                    }
+                                }
+
+                                originalImageBitmap?.let { bitmap ->
+                                    EditImageContent(
+                                        originalImageBitmap = bitmap,
+                                        croppedImageBitmap = croppedImageBitmap ?: bitmap,
+                                        editedImageBitmap = editedImageBitmap ?: bitmap,
+                                        editModeName = state?.switchEditMode ?: FILTER_NAME,
+                                        imageFilters = imageFilters ?: emptyList(),
+                                        gpuImage = gpuImage,
+                                        onCropCancelClicked = {
+                                            previewViewModel.switchEditMode(
+                                                FILTER_NAME
+                                            )
+                                        },
+                                        setCroppedImage = { previewViewModel.setCroppedImage(it) },
+                                        onEditModeTapped = { previewViewModel.switchEditMode(it) },
+                                        setEditedBitmap = { previewViewModel.setEditedBitmap(it) },
+                                        selectedFilter = { previewViewModel.selectedFilter(it) },
+                                        isImageCropped = isImageCropped ?: false,
+                                        hasFilteredImage = hasFilteredImage ?: false,
+                                        cancelEditMode = {
+                                            previewViewModel.onEvent(
+                                                PreviewScreenEvent.CancelEditTapped
+                                            )
+                                        },
+                                        onSaveTapped = {
+                                            previewViewModel.onEvent(
+                                                PreviewScreenEvent.SaveTapped(
+                                                    context
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+                            } else {
+                                SubcomposeAsyncImage(
+                                    model = currentList[page].uri,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .graphicsLayer(
+                                            scaleX = maxOf(1f, minOf(3f, scale)),
+                                            scaleY = maxOf(1f, minOf(3f, scale)),
+                                            rotationZ = rotationState,
+                                            translationX = offsetX,
+                                            translationY = offsetY
+                                        ),
+                                    filterQuality = FilterQuality.High,
+                                    contentDescription = ""
+                                ) {
+                                    val painterState = painter.state
+                                    if (painterState is AsyncImagePainter.State.Loading || painterState is AsyncImagePainter.State.Error) {
+                                        LinearProgressIndicator()
+                                    } else {
+                                        SubcomposeAsyncImageContent()
+                                    }
                                 }
                             }
                         }
@@ -278,39 +407,4 @@ fun PreviewScreen(
             }
         }
     }
-}
-
-@UnstableApi
-@Composable
-private fun VideoPlaybackContent(
-    filePath: Uri?,
-    isFullScreen: Boolean,
-    shouldShowController: Boolean,
-    onFullScreenToggle: (isFullScreen: Boolean) -> Unit,
-    hideController: (isPlaying: Boolean) -> Unit,
-    onPlayerClick: () -> Unit,
-    navigateBack: () -> Unit,
-) {
-    val systemUiController = rememberSystemUiController()
-    LaunchedEffect(isFullScreen) {
-        systemUiController.isSystemBarsVisible = !isFullScreen
-    }
-    val context = LocalContext.current
-    val exoPlayer = remember(filePath) {
-        ExoPlayer.Builder(context)
-            .setSeekBackIncrementMs(VIDEO_REPLAY_5)
-            .setSeekForwardIncrementMs(VIDEO_FORWARD_5)
-            .build()
-    }
-
-    CustomPlayerView(
-        filePath = filePath,
-        videoPlayer = exoPlayer,
-        isFullScreen = isFullScreen,
-        shouldShowController = shouldShowController,
-        onFullScreenToggle = onFullScreenToggle,
-        hideController = hideController,
-        onPlayerClick = onPlayerClick,
-        navigateBack = navigateBack,
-    )
 }

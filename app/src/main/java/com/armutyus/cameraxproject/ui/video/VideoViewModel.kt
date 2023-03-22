@@ -10,18 +10,17 @@ import androidx.camera.video.Quality
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
 import com.armutyus.cameraxproject.ui.video.models.RecordingStatus
 import com.armutyus.cameraxproject.ui.video.models.VideoEvent
 import com.armutyus.cameraxproject.ui.video.models.VideoState
+import com.armutyus.cameraxproject.util.BaseViewModel
 import com.armutyus.cameraxproject.util.FileManager
 import com.armutyus.cameraxproject.util.Util
 import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_ROUTE
-import com.armutyus.cameraxproject.util.Util.Companion.SETTINGS_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_DIR
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_EXTENSION
@@ -30,8 +29,8 @@ import kotlinx.coroutines.launch
 
 class VideoViewModel constructor(
     private val fileManager: FileManager,
-    private val navController: NavController
-) : ViewModel() {
+    navController: NavController
+) : BaseViewModel(navController) {
 
     private val _videoState: MutableLiveData<VideoState> = MutableLiveData(VideoState())
     val videoState: LiveData<VideoState> = _videoState
@@ -41,7 +40,6 @@ class VideoViewModel constructor(
             VideoEvent.FlashTapped -> onFlashTapped()
             VideoEvent.FlipTapped -> onFlipTapped()
             VideoEvent.DelayTimerTapped -> onDelayTimerTapped()
-            VideoEvent.SettingsTapped -> onSettingsTapped()
             VideoEvent.SetVideoQuality -> onSetVideoQuality()
             VideoEvent.SwitchToPhoto -> switchCameraMode()
             is VideoEvent.ThumbnailTapped -> onThumbnailTapped(videoEvent.uri)
@@ -199,10 +197,6 @@ class VideoViewModel constructor(
         }
     }
 
-    private fun onSettingsTapped() = viewModelScope.launch {
-        navigateTo(SETTINGS_ROUTE)
-    }
-
     private fun onCameraInitialized(cameraLensInfo: HashMap<Int, CameraInfo>) {
         if (cameraLensInfo.isNotEmpty()) {
             val defaultLens = if (cameraLensInfo[CameraSelector.LENS_FACING_BACK] != null) {
@@ -217,16 +211,6 @@ class VideoViewModel constructor(
                 lens = _videoState.value!!.lens ?: defaultLens,
                 lensInfo = cameraLensInfo
             )
-        }
-    }
-
-    private fun navigateTo(route: String) {
-        navController.navigate(route) {
-            popUpTo(navController.graph.startDestinationId) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
         }
     }
 }

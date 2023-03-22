@@ -3,6 +3,11 @@ package com.armutyus.cameraxproject.util
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.view.HapticFeedbackConstants
 import android.view.View
 import java.util.concurrent.TimeUnit
@@ -32,6 +37,17 @@ fun Long.formatMinSec(): String {
                 TimeUnit.MILLISECONDS.toMinutes(this)
             )
         )
+    }
+}
+
+@Suppress("DEPRECATION")
+fun Uri.toBitmap(context: Context): Bitmap {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val source = ImageDecoder.createSource(context.contentResolver, this)
+        ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, false)
+    } else {
+        MediaStore.Images.Media.getBitmap(context.contentResolver, this)
+            .copy(Bitmap.Config.ARGB_8888, false)
     }
 }
 

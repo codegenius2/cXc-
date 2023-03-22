@@ -20,7 +20,6 @@ sealed class VideoEvent {
     object FlipTapped : VideoEvent()
     data class ThumbnailTapped(val uri: Uri) : VideoEvent()
     object DelayTimerTapped : VideoEvent()
-    object SettingsTapped : VideoEvent()
 
     data class RecordTapped(
         val timeMillis: Long = 0L,

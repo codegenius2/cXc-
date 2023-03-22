@@ -1,23 +1,25 @@
 package com.armutyus.cameraxproject.ui.photo
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.armutyus.cameraxproject.R
 import com.armutyus.cameraxproject.ui.photo.models.PhotoEvent
 import com.armutyus.cameraxproject.ui.photo.models.PhotoState
+import com.armutyus.cameraxproject.util.BaseViewModel
 import com.armutyus.cameraxproject.util.FileManager
 import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_DIR
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_EXTENSION
-import com.armutyus.cameraxproject.util.Util.Companion.SETTINGS_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
 import com.armutyus.cameraxproject.util.Util.Companion.TIMER_10S
 import com.armutyus.cameraxproject.util.Util.Companion.TIMER_3S
@@ -28,8 +30,8 @@ import kotlinx.coroutines.launch
 
 class PhotoViewModel constructor(
     private val fileManager: FileManager,
-    private val navController: NavController
-) : ViewModel() {
+    navController: NavController
+) : BaseViewModel(navController) {
 
     private val _photoState: MutableLiveData<PhotoState> = MutableLiveData(PhotoState())
     val photoState: LiveData<PhotoState> = _photoState
@@ -39,8 +41,8 @@ class PhotoViewModel constructor(
             PhotoEvent.DelayTimerTapped -> onDelayTimerTapped()
             PhotoEvent.FlashTapped -> onFlashTapped()
             PhotoEvent.FlipTapped -> onFlipTapped()
-            PhotoEvent.SettingsTapped -> onSettingsTapped()
 
+            is PhotoEvent.EditIconTapped -> onEditIconTapped(photoEvent.context)
             is PhotoEvent.ThumbnailTapped -> onThumbnailTapped(photoEvent.uri)
             is PhotoEvent.CaptureTapped -> onCaptureTapped(
                 photoEvent.timeMillis,
@@ -75,6 +77,10 @@ class PhotoViewModel constructor(
         }
     }
 
+    private fun onEditIconTapped(context: Context) = viewModelScope.launch {
+        Toast.makeText(context, R.string.feature_not_available, Toast.LENGTH_SHORT).show()
+    }
+
     private fun onFlashTapped() = viewModelScope.launch {
         _photoState.value = when (_photoState.value!!.flashMode) {
             ImageCapture.FLASH_MODE_OFF -> _photoState.value!!.copy(flashMode = ImageCapture.FLASH_MODE_AUTO)
@@ -105,10 +111,6 @@ class PhotoViewModel constructor(
         navigateTo(VIDEO_ROUTE)
     }
 
-    private fun onSettingsTapped() = viewModelScope.launch {
-        navigateTo(SETTINGS_ROUTE)
-    }
-
     private fun onThumbnailTapped(uri: Uri?) = viewModelScope.launch {
         navigateTo("preview_screen/?filePath=${uri?.toString()}")
     }
@@ -137,15 +139,4 @@ class PhotoViewModel constructor(
                     .copy(lens = _photoState.value!!.lens ?: defaultLens, lensInfo = cameraLensInfo)
             }
         }
-
-    private fun navigateTo(route: String) {
-        navController.navigate(route) {
-            popUpTo(navController.graph.startDestinationId) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
-
 }

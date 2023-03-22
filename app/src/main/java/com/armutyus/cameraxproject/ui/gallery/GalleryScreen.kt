@@ -2,6 +2,7 @@ package com.armutyus.cameraxproject.ui.gallery
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
@@ -35,6 +36,11 @@ import com.armutyus.cameraxproject.ui.gallery.models.BottomNavItem
 import com.armutyus.cameraxproject.ui.gallery.models.GalleryEvent
 import com.armutyus.cameraxproject.ui.gallery.models.MediaItem
 import com.armutyus.cameraxproject.ui.theme.CameraXProjectTheme
+import com.armutyus.cameraxproject.util.LockScreenOrientation
+import com.armutyus.cameraxproject.util.Util.Companion.ALL_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.EDIT_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_CONTENT
+import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_CONTENT
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,11 +51,17 @@ fun GalleryScreen(
 
     val state by galleryViewModel.galleryState.observeAsState()
     val media by galleryViewModel.mediaItems.observeAsState(mapOf())
+    val groupedMedia =
+        media.values.flatten().filterNot { it.name.startsWith("cXc") }
+            .groupBy { it.takenTime }
     val groupedPhotos =
-        media.values.flatten().filter { it.type == MediaItem.Type.PHOTO }
+        media.values.flatten().filter { it.type == MediaItem.Type.PHOTO && it.name.startsWith("2") }
             .groupBy { it.takenTime }
     val groupedVideos =
         media.values.flatten().filter { it.type == MediaItem.Type.VIDEO }
+            .groupBy { it.takenTime }
+    val editedMedia =
+        media.values.flatten().filter { it.name.startsWith("cXc") }
             .groupBy { it.takenTime }
 
     val context = LocalContext.current
@@ -58,7 +70,8 @@ fun GalleryScreen(
     val bottomNavItems = listOf(
         BottomNavItem.Gallery,
         BottomNavItem.Photos,
-        BottomNavItem.Videos
+        BottomNavItem.Videos,
+        BottomNavItem.Edits
     )
     val selectableModeItems = listOf(
         BottomNavItem.Cancel,
@@ -69,6 +82,8 @@ fun GalleryScreen(
     LaunchedEffect(galleryViewModel) {
         galleryViewModel.loadMedia()
     }
+
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     BackHandler {
         if (state?.selectableMode == true) {
@@ -204,12 +219,23 @@ fun GalleryScreen(
             }
 
             when (filterContent) {
-                MediaItem.Filter.ALL -> media
+                MediaItem.Filter.ALL -> groupedMedia
                 MediaItem.Filter.PHOTOS -> groupedPhotos
                 MediaItem.Filter.VIDEOS -> groupedVideos
+                MediaItem.Filter.EDITS -> editedMedia
             }.let { map ->
+                var contentFilter by remember { mutableStateOf(ALL_CONTENT) }
+                LaunchedEffect(map) {
+                    when (map) {
+                        groupedMedia -> contentFilter = ALL_CONTENT
+                        groupedPhotos -> contentFilter = PHOTO_CONTENT
+                        groupedVideos -> contentFilter = VIDEO_CONTENT
+                        editedMedia -> contentFilter = EDIT_CONTENT
+                    }
+                }
                 GalleryScreenContent(
                     context = context,
+                    contentFilter = contentFilter,
                     groupedMedia = map,
                     selectableMode = state?.selectableMode == true,
                     galleryViewModel = galleryViewModel
@@ -225,6 +251,7 @@ fun GalleryScreen(
 @Composable
 fun GalleryScreenContent(
     context: Context,
+    contentFilter: String,
     groupedMedia: Map<String, List<MediaItem>>,
     selectableMode: Boolean,
     galleryViewModel: GalleryViewModel,
@@ -243,7 +270,7 @@ fun GalleryScreenContent(
                 )
             }
             items(
-                items = mediaForTakenTime.chunked(numberOfItemsByRow)
+                items = mediaForTakenTime.sortedByDescending { it.name }.chunked(numberOfItemsByRow)
             ) { mediaList ->
                 Row(
                     modifier = Modifier.padding(vertical = 1.dp, horizontal = 4.dp),
@@ -259,7 +286,8 @@ fun GalleryScreenContent(
                             onItemClicked = {
                                 if (!selectableMode) onEvent(
                                     GalleryEvent.ItemClicked(
-                                        it
+                                        it,
+                                        contentFilter
                                     )
                                 )
                             }

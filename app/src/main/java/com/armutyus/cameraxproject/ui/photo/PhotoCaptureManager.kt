@@ -7,7 +7,6 @@ import android.os.Build
 import android.util.Log
 import android.view.*
 import android.webkit.MimeTypeMap
-import androidx.annotation.RequiresApi
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -22,6 +21,7 @@ import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
 import com.armutyus.cameraxproject.util.Util.Companion.UNKNOWN_ORIENTATION
 import com.armutyus.cameraxproject.util.aspectRatio
+import com.armutyus.cameraxproject.util.findActivity
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.launch
 import java.io.File
@@ -72,8 +72,11 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
 
     private fun getLifeCycleOwner() = builder.lifecycleOwner!!
 
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun getView() = builder.context.display!!
+    private fun getView() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        getContext().display!!
+    } else {
+        getContext().findActivity()?.windowManager?.defaultDisplay!!
+    }
 
     /**
      * Using an OrientationEventListener allows you to continuously update the target rotation
@@ -134,7 +137,6 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
      * Bind the selected camera and any use cases to the lifecycle.
      * Connect the Preview to the PreviewView.
      */
-    @RequiresApi(Build.VERSION_CODES.R)
     @Synchronized
     private fun showPreview(
         previewPhotoState: PreviewPhotoState,
@@ -202,12 +204,10 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
         return cameraPreview
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun showPreview(previewPhotoState: PreviewPhotoState): View {
         return showPreview(previewPhotoState, getCameraPreview())
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun updatePreview(previewPhotoState: PreviewPhotoState, previewView: View) {
         showPreview(previewPhotoState, previewView as PreviewView)
     }
