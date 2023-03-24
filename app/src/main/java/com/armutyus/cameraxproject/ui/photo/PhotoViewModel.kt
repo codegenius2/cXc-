@@ -18,6 +18,7 @@ import com.armutyus.cameraxproject.ui.photo.models.PhotoState
 import com.armutyus.cameraxproject.util.BaseViewModel
 import com.armutyus.cameraxproject.util.FileManager
 import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
+import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_CONTENT
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_DIR
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_EXTENSION
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
@@ -112,7 +113,7 @@ class PhotoViewModel constructor(
     }
 
     private fun onThumbnailTapped(uri: Uri?) = viewModelScope.launch {
-        navigateTo("preview_screen/?filePath=${uri?.toString()}")
+        navigateTo("preview_screen/?filePath=${uri?.toString()}/?contentFilter=${PHOTO_CONTENT}")
     }
 
     private fun onImageCaptured(uri: Uri?) = viewModelScope.launch {

@@ -22,6 +22,7 @@ import com.armutyus.cameraxproject.util.Util
 import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
 import com.armutyus.cameraxproject.util.Util.Companion.PHOTO_ROUTE
 import com.armutyus.cameraxproject.util.Util.Companion.TAG
+import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_CONTENT
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_DIR
 import com.armutyus.cameraxproject.util.Util.Companion.VIDEO_EXTENSION
 import kotlinx.coroutines.delay
@@ -117,7 +118,7 @@ class VideoViewModel constructor(
     }
 
     private fun onThumbnailTapped(uri: Uri?) = viewModelScope.launch {
-        navigateTo("preview_screen/?filePath=${uri?.toString()}")
+        navigateTo("preview_screen/?filePath=${uri?.toString()}/?contentFilter=${VIDEO_CONTENT}")
     }
 
     private fun onPauseTapped(videoCaptureManager: VideoCaptureManager) = viewModelScope.launch {
