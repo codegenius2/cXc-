@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraX Project</string>
+    <string name="app_name">cXc</string>
     <string name="give_permissions">Give Permissions</string>
     <string name="permissions">Permissions</string>
     <string name="permissions_required">Permissions are required to use the app.</string>
