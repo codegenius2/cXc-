@@ -46,6 +46,11 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+        resolutionStrategy.force 'com.github.SmartToolFactory:Compose-Colorful-Sliders:master-SNAPSHOT'
+    }
 }
 
 dependencies {
@@ -78,7 +83,7 @@ dependencies {
     // Coil
     implementation "io.coil-kt:coil-compose:2.2.2"
     implementation "io.coil-kt:coil-video:2.2.2"
-    implementation "com.google.accompanist:accompanist-coil:0.7.0"
+    implementation 'com.google.accompanist:accompanist-coil:0.15.0'
 
     // CameraX
     def camerax_version = "1.2.1"
@@ -97,7 +102,7 @@ dependencies {
     implementation 'jp.co.cyberagent.android:gpuimage:2.1.0'
 
     // Accompanist
-    def accompanist_version = "0.27.1"
+    def accompanist_version = '0.30.0'
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
     implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
     implementation "com.google.accompanist:accompanist-navigation-animation:$accompanist_version"
@@ -109,7 +114,7 @@ dependencies {
     // SmartTool Factory
     implementation 'com.github.smarttoolfactory:compose-cropper:master-SNAPSHOT'
     implementation 'com.github.smarttoolfactory:compose-zoom:master-SNAPSHOT'
-    implementation 'com.github.SmartToolFactory:Compose-Colorful-Sliders:1.1.0'
+    implementation 'com.github.SmartToolFactory:Compose-Colorful-Sliders:master-SNAPSHOT'
     implementation 'com.github.SmartToolFactory:Compose-Color-Picker-Bundle:1.0.1'
     implementation 'com.github.SmartToolFactory:Compose-Extended-Gestures:2.1.0'
     implementation 'com.github.SmartToolFactory:Compose-AnimatedList:0.5.1'
