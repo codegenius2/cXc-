@@ -30,6 +30,24 @@ I tried to use many up-to-date approaches and technologies while developing this
 * Material 3
 * Coil
 
+## Screenshots
+
+<p align="center" width="100%">
+    <img width="32%" src="https://lh3.googleusercontent.com/nTO7_dxC4bDgX7O0upIFdIP5UjyHnQhjQKStBw3YBTXRC-_k0u8hsQHSlfXFkHehzCc">
+    <img width="32%" src="https://lh3.googleusercontent.com/rgYwvoID5k0izyYry10ESz5ceQdZbEsjG15qYl-fd9pYduYNVP8wlGPTHkvIUsbGKEw">
+    <img width="32%" src="https://lh3.googleusercontent.com/BnEhEzGleu4cBymcqLHBLJwsi7ia-2V-omX92pbbBHVRvmed759hcpiqp0ozQaJI0MY">
+</p>
+
+<p align="center" width="100%">
+    <img width="32%" src="https://lh3.googleusercontent.com/YBHcUJ_duETH69PYJxLJzhNm1PY1U2a_ZKVq44abVciVQTVTQKQelCCDT-8FL--uVfKq">
+    <img width="32%" src="https://lh3.googleusercontent.com/gH52zKYFNqPj_RcDWom9gMWC9YK5hsoFse-otYOZIX9sAIlqGWRGDVKs_-p4KFegzQ">
+    <img width="32%" src="https://lh3.googleusercontent.com/-woqFN7DJs3thkGcPN9epYYr8WyIryWfSIKyttA0US3akRTdXT5gVvIqVsGPvUvrR-g">
+</p>
+
+<p align="center" width="100%">
+    <img width="32%" src="https://lh3.googleusercontent.com/aXZDvZKr68EGBRKl-SqEHF_FneH6klWPXmSIrzHF_BOSoECv3RG-qR8troqevrvE_A">
+</p>
+
 ## TO-DO
 
 * Now we use a library for crop feature(it's very cool and easy to use though), maybe we could change it for our needs and then remove the library.
