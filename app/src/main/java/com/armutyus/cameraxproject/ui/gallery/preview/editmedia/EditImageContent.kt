@@ -284,7 +284,7 @@ fun EditModesRow(
             color = if (editModesItem.selected) {
                 MaterialTheme.colorScheme.primary
             } else {
-                Color.White
+                MaterialTheme.colorScheme.onBackground
             }
         )
     }
