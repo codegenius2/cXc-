@@ -33,19 +33,19 @@ I tried to use many up-to-date approaches and technologies while developing this
 ## Screenshots
 
 <p align="center" width="100%">
-    <img width="32%" src="https://lh3.googleusercontent.com/nTO7_dxC4bDgX7O0upIFdIP5UjyHnQhjQKStBw3YBTXRC-_k0u8hsQHSlfXFkHehzCc">
-    <img width="32%" src="https://lh3.googleusercontent.com/rgYwvoID5k0izyYry10ESz5ceQdZbEsjG15qYl-fd9pYduYNVP8wlGPTHkvIUsbGKEw">
-    <img width="32%" src="https://lh3.googleusercontent.com/BnEhEzGleu4cBymcqLHBLJwsi7ia-2V-omX92pbbBHVRvmed759hcpiqp0ozQaJI0MY">
+    <img width="32%" src="https://play-lh.googleusercontent.com/nTO7_dxC4bDgX7O0upIFdIP5UjyHnQhjQKStBw3YBTXRC-_k0u8hsQHSlfXFkHehzCc=w5120-h2880-rw">
+    <img width="32%" src="https://play-lh.googleusercontent.com/rgYwvoID5k0izyYry10ESz5ceQdZbEsjG15qYl-fd9pYduYNVP8wlGPTHkvIUsbGKEw=w5120-h2880-rw">
+    <img width="32%" src="https://play-lh.googleusercontent.com/BnEhEzGleu4cBymcqLHBLJwsi7ia-2V-omX92pbbBHVRvmed759hcpiqp0ozQaJI0MY=w5120-h2880-rw">
 </p>
 
 <p align="center" width="100%">
-    <img width="32%" src="https://lh3.googleusercontent.com/YBHcUJ_duETH69PYJxLJzhNm1PY1U2a_ZKVq44abVciVQTVTQKQelCCDT-8FL--uVfKq">
-    <img width="32%" src="https://lh3.googleusercontent.com/gH52zKYFNqPj_RcDWom9gMWC9YK5hsoFse-otYOZIX9sAIlqGWRGDVKs_-p4KFegzQ">
-    <img width="32%" src="https://lh3.googleusercontent.com/-woqFN7DJs3thkGcPN9epYYr8WyIryWfSIKyttA0US3akRTdXT5gVvIqVsGPvUvrR-g">
+    <img width="32%" src="https://play-lh.googleusercontent.com/YBHcUJ_duETH69PYJxLJzhNm1PY1U2a_ZKVq44abVciVQTVTQKQelCCDT-8FL--uVfKq=w5120-h2880-rw">
+    <img width="32%" src="https://play-lh.googleusercontent.com/gH52zKYFNqPj_RcDWom9gMWC9YK5hsoFse-otYOZIX9sAIlqGWRGDVKs_-p4KFegzQ=w5120-h2880-rw">
+    <img width="32%" src="https://play-lh.googleusercontent.com/-woqFN7DJs3thkGcPN9epYYr8WyIryWfSIKyttA0US3akRTdXT5gVvIqVsGPvUvrR-g=w5120-h2880-rw">
 </p>
 
 <p align="center" width="100%">
-    <img width="32%" src="https://lh3.googleusercontent.com/aXZDvZKr68EGBRKl-SqEHF_FneH6klWPXmSIrzHF_BOSoECv3RG-qR8troqevrvE_A">
+    <img width="32%" src="https://play-lh.googleusercontent.com/aXZDvZKr68EGBRKl-SqEHF_FneH6klWPXmSIrzHF_BOSoECv3RG-qR8troqevrvE_A=w5120-h2880-rw">
 </p>
 
 ## TO-DO
@@ -54,7 +54,6 @@ I tried to use many up-to-date approaches and technologies while developing this
 * Adding more filters for editing photos
 * Live filters when capturing photo or video
 * Landscape mode
-* Add screenshots to here
 * and more..
 
 ## Credits
