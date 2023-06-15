@@ -244,13 +244,14 @@ private fun MainContent(
                 crop = crop,
                 onCropStart = {
                     isCropping = true
+                },
+                onCropSuccess = {
+                    croppedImage = it
+                    isCropping = false
+                    crop = false
+                    showDialog = true
                 }
-            ) {
-                croppedImage = it
-                isCropping = false
-                crop = false
-                showDialog = true
-            }
+            )
 
             val editModesList = listOf(
                 EditModesItem(FILTER_MODE, FILTER_NAME, editModeName == FILTER_NAME),

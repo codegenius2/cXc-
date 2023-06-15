@@ -1,8 +1,19 @@
 package com.armutyus.cameraxproject.ui.gallery.preview.editmedia.cropproperties
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.GenericShape
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -35,25 +46,25 @@ internal fun OvalCropShapeEdit(
     }
 
     var startAngle by remember {
-        mutableStateOf(
+        mutableFloatStateOf(
             ovalProperties.startAngle
         )
     }
 
     var sweepAngle by remember {
-        mutableStateOf(
+        mutableFloatStateOf(
             ovalProperties.sweepAngle
         )
     }
 
     var offsetX by remember {
-        mutableStateOf(
+        mutableFloatStateOf(
             ovalProperties.offset.x
         )
     }
 
     var offsetY by remember {
-        mutableStateOf(
+        mutableFloatStateOf(
             ovalProperties.offset.y
         )
     }

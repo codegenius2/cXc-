@@ -138,6 +138,7 @@ fun EditImageContent(
                 }
             }
         }
+
         CROP_NAME -> {
             ImageCropMode(
                 editedImageBitmap = editedImageBitmap.asImageBitmap(),

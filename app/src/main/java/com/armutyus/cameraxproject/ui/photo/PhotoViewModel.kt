@@ -49,6 +49,7 @@ class PhotoViewModel constructor(
                 photoEvent.timeMillis,
                 photoEvent.photoCaptureManager
             )
+
             is PhotoEvent.CameraInitialized -> onCameraInitialized(photoEvent.cameraLensInfo)
             is PhotoEvent.ImageCaptured -> onImageCaptured(photoEvent.imageResult.savedUri)
             is PhotoEvent.SwitchToVideo -> switchCameraMode()

@@ -5,16 +5,33 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import android.view.*
+import android.view.MotionEvent
+import android.view.OrientationEventListener
+import android.view.ScaleGestureDetector
+import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import androidx.camera.core.*
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.compositionLocalOf
 import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.armutyus.cameraxproject.ui.photo.models.PreviewPhotoState
 import com.armutyus.cameraxproject.util.Util
 import com.armutyus.cameraxproject.util.Util.Companion.CAPTURE_FAIL
@@ -27,6 +44,9 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.collections.HashMap
+import kotlin.collections.forEach
+import kotlin.collections.set
 
 class PhotoCaptureManager private constructor(private val builder: Builder) :
     LifecycleEventObserver, ImageAnalysis.Analyzer {
@@ -54,6 +74,7 @@ class PhotoCaptureManager private constructor(private val builder: Builder) :
                     queryCameraInfo(source, cameraProvider)
                 }, ContextCompat.getMainExecutor(getContext()))
             }
+
             else -> Unit
         }
     }

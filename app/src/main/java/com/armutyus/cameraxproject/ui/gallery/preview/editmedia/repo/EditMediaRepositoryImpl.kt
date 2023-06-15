@@ -4,7 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.armutyus.cameraxproject.ui.gallery.preview.editmedia.models.ImageFilter
 import jp.co.cyberagent.android.gpuimage.GPUImage
-import jp.co.cyberagent.android.gpuimage.filter.*
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageColorMatrixFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageRGBFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSaturationFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSepiaToneFilter
 
 class EditMediaRepositoryImpl(private val context: Context) : EditMediaRepository {
 

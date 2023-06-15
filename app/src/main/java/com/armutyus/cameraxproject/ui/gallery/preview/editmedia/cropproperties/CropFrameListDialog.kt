@@ -411,6 +411,7 @@ private fun CropOutlineDisplay(
                         }
                 )
             }
+
             is CropPath -> {
                 Box(
                     Modifier
@@ -429,6 +430,7 @@ private fun CropOutlineDisplay(
                         }
                 )
             }
+
             is CropImageMask -> {
                 Box(
                     modifier = Modifier

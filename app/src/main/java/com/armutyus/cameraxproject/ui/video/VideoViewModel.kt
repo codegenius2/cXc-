@@ -53,6 +53,7 @@ class VideoViewModel constructor(
                 videoEvent.timeMillis,
                 videoEvent.videoCaptureManager
             )
+
             is VideoEvent.CameraInitialized -> onCameraInitialized(videoEvent.cameraLensInfo)
             is VideoEvent.StateChanged -> onStateChanged(videoEvent.cameraState)
             is VideoEvent.OnProgress -> onProgress(videoEvent.progress)
@@ -97,22 +98,27 @@ class VideoViewModel constructor(
                 quality = Quality.SD,
                 cameraState = CameraState.CHANGED
             )
+
             Quality.SD -> _videoState.value!!.copy(
                 quality = Quality.HD,
                 cameraState = CameraState.CHANGED
             )
+
             Quality.HD -> _videoState.value!!.copy(
                 quality = Quality.FHD,
                 cameraState = CameraState.CHANGED
             )
+
             Quality.FHD -> _videoState.value!!.copy(
                 quality = Quality.UHD,
                 cameraState = CameraState.CHANGED
             )
+
             Quality.UHD -> _videoState.value!!.copy(
                 quality = Quality.SD,
                 cameraState = CameraState.CHANGED
             )
+
             else -> _videoState.value!!.copy(quality = Quality.HIGHEST)
         }
     }

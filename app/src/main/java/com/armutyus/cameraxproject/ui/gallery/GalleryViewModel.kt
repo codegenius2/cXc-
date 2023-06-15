@@ -42,6 +42,7 @@ class GalleryViewModel constructor(
                 galleryEvent.item,
                 galleryEvent.contentFilter
             )
+
             is GalleryEvent.ShareTapped -> onShareTapped(galleryEvent.context)
             GalleryEvent.FabClicked -> onFabClicked()
             GalleryEvent.SelectAllClicked -> changeSelectAllState()

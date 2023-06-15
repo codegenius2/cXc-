@@ -167,12 +167,15 @@ fun GalleryScreen(
                                     BottomNavItem.Cancel -> {
                                         galleryViewModel.onEvent(GalleryEvent.CancelSelectableMode)
                                     }
+
                                     BottomNavItem.Delete -> {
                                         galleryViewModel.onEvent(GalleryEvent.DeleteTapped)
                                     }
+
                                     BottomNavItem.Share -> {
                                         galleryViewModel.onEvent(GalleryEvent.ShareTapped(context))
                                     }
+
                                     else -> {}
                                 }
                             }

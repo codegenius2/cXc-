@@ -8,7 +8,16 @@ import android.view.View
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -17,8 +26,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,7 +51,14 @@ import com.armutyus.cameraxproject.ui.photo.models.CameraModesItem
 import com.armutyus.cameraxproject.ui.photo.models.CameraState
 import com.armutyus.cameraxproject.ui.photo.models.PhotoEvent
 import com.armutyus.cameraxproject.ui.photo.models.PreviewPhotoState
-import com.armutyus.cameraxproject.util.*
+import com.armutyus.cameraxproject.util.CameraCaptureIcon
+import com.armutyus.cameraxproject.util.CameraDelayIcon
+import com.armutyus.cameraxproject.util.CameraEditIcon
+import com.armutyus.cameraxproject.util.CameraFlashIcon
+import com.armutyus.cameraxproject.util.CameraFlipIcon
+import com.armutyus.cameraxproject.util.CapturedImageThumbnailIcon
+import com.armutyus.cameraxproject.util.LockScreenOrientation
+import com.armutyus.cameraxproject.util.Util
 import com.armutyus.cameraxproject.util.Util.Companion.APP_NAME
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_10S
 import com.armutyus.cameraxproject.util.Util.Companion.DELAY_3S
@@ -60,7 +82,7 @@ fun PhotoScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val view = LocalView.current
     var rotation by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val orientationEventListener by lazy {
@@ -190,6 +212,7 @@ private fun PhotoScreenContent(
                                     photoCaptureManager
                                 )
                             )
+
                             TIMER_10S -> onEvent(
                                 PhotoEvent.CaptureTapped(
                                     DELAY_10S,

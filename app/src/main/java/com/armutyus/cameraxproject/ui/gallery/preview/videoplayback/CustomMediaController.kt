@@ -74,11 +74,13 @@ fun CustomMediaController(
                             onPauseToggle()
                         }
                     }
+
                     playing.not() && playerState == STATE_ENDED -> {
                         VideoPlayIcon {
                             onPauseToggle()
                         }
                     }
+
                     else -> {
                         VideoPlayIcon {
                             onPauseToggle()

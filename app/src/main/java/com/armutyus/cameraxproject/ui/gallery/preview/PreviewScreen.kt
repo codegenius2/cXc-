@@ -7,13 +7,41 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.gestures.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateRotation
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,10 +102,10 @@ fun PreviewScreen(
     val media by galleryViewModel.mediaItems.observeAsState(mapOf())
     val state by previewViewModel.previewScreenState.observeAsState()
     var isDeleteTapped by remember { mutableStateOf(false) }
-    var scale by remember { mutableStateOf(1f) }
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
-    var rotationState by remember { mutableStateOf(0f) }
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    var rotationState by remember { mutableFloatStateOf(0f) }
     var zoomState by remember { mutableStateOf(false) }
 
 
@@ -161,6 +189,7 @@ fun PreviewScreen(
                                             )
                                         )
                                     }
+
                                     BottomNavItem.EditItem -> {
                                         if (currentFile.extension == "mp4") {
                                             Toast.makeText(
@@ -172,9 +201,11 @@ fun PreviewScreen(
                                             previewViewModel.onEvent(PreviewScreenEvent.EditTapped)
                                         }
                                     }
+
                                     BottomNavItem.Delete -> {
                                         isDeleteTapped = true
                                     }
+
                                     else -> {}
                                 }
                             }
@@ -204,7 +235,7 @@ fun PreviewScreen(
             val count = currentList.size
             val initialItem =
                 currentList.firstOrNull { mediaItem -> mediaItem.name == initialFile.name }
-            val initialItemIndex by remember { mutableStateOf(currentList.indexOf(initialItem)) }
+            val initialItemIndex by remember { mutableIntStateOf(currentList.indexOf(initialItem)) }
             val pagerState = rememberPagerState(initialItemIndex)
 
             currentFile = currentList[pagerState.currentPage].uri!!.toFile()
@@ -384,6 +415,7 @@ fun PreviewScreen(
                                 }
                             }
                         }
+
                         MediaItem.Type.VIDEO -> {
                             VideoPlaybackContent(
                                 currentList[page].uri,
@@ -401,6 +433,7 @@ fun PreviewScreen(
                                 { previewViewModel.onEvent(PreviewScreenEvent.NavigateBack) }
                             )
                         }
+
                         else -> {}
                     }
                 }

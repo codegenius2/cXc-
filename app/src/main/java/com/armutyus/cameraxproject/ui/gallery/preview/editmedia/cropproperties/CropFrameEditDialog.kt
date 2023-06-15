@@ -3,11 +3,25 @@ package com.armutyus.cameraxproject.ui.gallery.preview.editmedia.cropproperties
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import com.smarttoolfactory.cropper.R
-import com.smarttoolfactory.cropper.model.*
+import com.smarttoolfactory.cropper.model.AspectRatio
+import com.smarttoolfactory.cropper.model.CropFrame
+import com.smarttoolfactory.cropper.model.CropOutline
+import com.smarttoolfactory.cropper.model.CustomPathOutline
+import com.smarttoolfactory.cropper.model.CutCornerCropShape
+import com.smarttoolfactory.cropper.model.ImageMaskOutline
+import com.smarttoolfactory.cropper.model.OutlineType
+import com.smarttoolfactory.cropper.model.OvalCropShape
+import com.smarttoolfactory.cropper.model.PolygonCropShape
+import com.smarttoolfactory.cropper.model.RoundedCornerCropShape
+import com.smarttoolfactory.cropper.model.getOutlineContainer
 
 @Composable
 fun CropFrameEditDialog(
@@ -43,6 +57,7 @@ fun CropFrameEditDialog(
                         outline = it
                     }
                 }
+
                 OutlineType.CutCorner -> {
                     val shape = outline as CutCornerCropShape
 
@@ -55,6 +70,7 @@ fun CropFrameEditDialog(
                         outline = it
                     }
                 }
+
                 OutlineType.Oval -> {
 
                     val shape = outline as OvalCropShape
@@ -68,6 +84,7 @@ fun CropFrameEditDialog(
                         outline = it
                     }
                 }
+
                 OutlineType.Polygon -> {
 
                     val shape = outline as PolygonCropShape
@@ -81,12 +98,14 @@ fun CropFrameEditDialog(
                         outline = it
                     }
                 }
+
                 OutlineType.ImageMask -> {
                     val imageMaskOutline = outline as ImageMaskOutline
                     ImageMaskEdit(imageMaskOutline) {
                         outline = it
                     }
                 }
+
                 OutlineType.Custom -> {
                     val customPathOutline = outline as CustomPathOutline
                     CustomPathEdit(
@@ -97,6 +116,7 @@ fun CropFrameEditDialog(
                         outline = it
                     }
                 }
+
                 else -> Unit
             }
         },

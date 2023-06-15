@@ -24,6 +24,7 @@ fun getAspectRatio(quality: Quality): Int {
     return when {
         arrayOf(Quality.UHD, Quality.FHD, Quality.HD, Quality.HIGHEST)
             .contains(quality) -> AspectRatio.RATIO_16_9
+
         (quality == Quality.SD) -> AspectRatio.RATIO_4_3
         else -> throw UnsupportedOperationException()
     }

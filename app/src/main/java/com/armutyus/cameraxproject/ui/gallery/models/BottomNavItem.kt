@@ -1,7 +1,14 @@
 package com.armutyus.cameraxproject.ui.gallery.models
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.*
+import androidx.compose.material.icons.sharp.Cancel
+import androidx.compose.material.icons.sharp.Compare
+import androidx.compose.material.icons.sharp.Delete
+import androidx.compose.material.icons.sharp.Edit
+import androidx.compose.material.icons.sharp.LibraryBooks
+import androidx.compose.material.icons.sharp.PhotoLibrary
+import androidx.compose.material.icons.sharp.Share
+import androidx.compose.material.icons.sharp.VideoLibrary
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.armutyus.cameraxproject.R
 

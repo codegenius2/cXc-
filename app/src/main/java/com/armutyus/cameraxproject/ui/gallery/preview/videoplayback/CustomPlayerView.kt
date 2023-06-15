@@ -9,8 +9,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
@@ -37,10 +46,10 @@ fun CustomPlayerView(
     navigateBack: (() -> Unit)? = null
 ) {
     var isPlaying by rememberSaveable(filePath) { mutableStateOf(videoPlayer.isPlaying) }
-    var playbackState by rememberSaveable(filePath) { mutableStateOf(videoPlayer.playbackState) }
-    var videoTimer by rememberSaveable(filePath) { mutableStateOf(0f) }
-    var totalDuration by rememberSaveable(filePath) { mutableStateOf(0L) }
-    var bufferedPercentage by rememberSaveable(filePath) { mutableStateOf(0) }
+    var playbackState by rememberSaveable(filePath) { mutableIntStateOf(videoPlayer.playbackState) }
+    var videoTimer by rememberSaveable(filePath) { mutableFloatStateOf(0f) }
+    var totalDuration by rememberSaveable(filePath) { mutableLongStateOf(0L) }
+    var bufferedPercentage by rememberSaveable(filePath) { mutableIntStateOf(0) }
 
     BackHandler {
         if (isFullScreen) {
@@ -105,10 +114,12 @@ fun CustomPlayerView(
                     videoPlayer.isPlaying -> {
                         videoPlayer.pause()
                     }
+
                     videoPlayer.isPlaying.not() && playbackState == STATE_ENDED -> {
                         videoPlayer.seekTo(0, 0)
                         videoPlayer.playWhenReady = true
                     }
+
                     else -> {
                         videoPlayer.play()
                     }
@@ -169,9 +180,11 @@ private fun VideoPlayer(
                                 onPause()
                                 player?.pause()
                             }
+
                             Lifecycle.Event.ON_RESUME -> {
                                 onResume()
                             }
+
                             else -> Unit
                         }
                     }

@@ -50,6 +50,7 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
                     queryCameraInfo(source, cameraProvider)
                 }, ContextCompat.getMainExecutor(getContext()))
             }
+
             else -> Unit
         }
     }
@@ -258,6 +259,7 @@ class VideoCaptureManager private constructor(private val builder: Builder) :
             } else {
                 listener?.recordingCompleted(event.outputResults.outputUri)
             }
+
             is VideoRecordEvent.Pause -> listener?.recordingPaused()
             is VideoRecordEvent.Status -> {
                 listener?.onProgress(event.recordingStats.recordedDurationNanos.fromNanoToSeconds())

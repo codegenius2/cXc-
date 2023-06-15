@@ -42,10 +42,12 @@ class PreviewViewModel constructor(
                 previewScreenEvent.context,
                 previewScreenEvent.file
             )
+
             is PreviewScreenEvent.DeleteTapped -> onDeleteTapped(previewScreenEvent.file)
             is PreviewScreenEvent.FullScreenToggleTapped -> onFullScreenToggleTapped(
                 previewScreenEvent.isFullScreen
             )
+
             is PreviewScreenEvent.ChangeBarState -> onChangeBarState(previewScreenEvent.zoomState)
             is PreviewScreenEvent.HideController -> hideController(previewScreenEvent.isPlaying)
             is PreviewScreenEvent.SaveTapped -> saveEditedImage(previewScreenEvent.context)

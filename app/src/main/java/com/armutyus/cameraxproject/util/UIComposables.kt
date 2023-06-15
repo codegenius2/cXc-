@@ -18,12 +18,40 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.sharp.AutoFixHigh
+import androidx.compose.material.icons.sharp.FlashAuto
+import androidx.compose.material.icons.sharp.FlashOff
+import androidx.compose.material.icons.sharp.FlashOn
+import androidx.compose.material.icons.sharp.FlipCameraAndroid
+import androidx.compose.material.icons.sharp.Forward5
+import androidx.compose.material.icons.sharp.Fullscreen
+import androidx.compose.material.icons.sharp.FullscreenExit
+import androidx.compose.material.icons.sharp.Hd
+import androidx.compose.material.icons.sharp.HighQuality
+import androidx.compose.material.icons.sharp.Lens
+import androidx.compose.material.icons.sharp.ModeStandby
+import androidx.compose.material.icons.sharp.PauseCircle
+import androidx.compose.material.icons.sharp.PlayCircle
+import androidx.compose.material.icons.sharp.Replay5
+import androidx.compose.material.icons.sharp.Sd
+import androidx.compose.material.icons.sharp.Settings
+import androidx.compose.material.icons.sharp.StopCircle
+import androidx.compose.material.icons.sharp.Timer10
+import androidx.compose.material.icons.sharp.Timer3
+import androidx.compose.material.icons.sharp.TimerOff
+import androidx.compose.material.icons.sharp._2k
+import androidx.compose.material.icons.sharp._4k
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -601,14 +629,14 @@ fun Timer(modifier: Modifier = Modifier, seconds: Int) {
 
 @Composable
 fun DelayTimer(millisInFuture: Long) {
-    val timeData = remember {
-        mutableStateOf(millisInFuture)
+    var timeData by remember {
+        mutableLongStateOf(millisInFuture)
     }
 
     val countDownTimer = object : CountDownTimer(millisInFuture, 1000) {
         override fun onTick(millisUntilFinished: Long) {
             Log.d(TAG, "onTick: ")
-            timeData.value = millisUntilFinished
+            timeData = millisUntilFinished
         }
 
         override fun onFinish() {
@@ -619,13 +647,13 @@ fun DelayTimer(millisInFuture: Long) {
     DisposableEffect(key1 = "key1") {
         countDownTimer.start()
         onDispose {
-            timeData.value = millisInFuture
+            timeData = millisInFuture
             countDownTimer.cancel()
         }
     }
 
     Text(
-        text = TimeUnit.MILLISECONDS.toSeconds(timeData.value).toString(),
+        text = TimeUnit.MILLISECONDS.toSeconds(timeData).toString(),
         textAlign = TextAlign.Center
     )
 }
