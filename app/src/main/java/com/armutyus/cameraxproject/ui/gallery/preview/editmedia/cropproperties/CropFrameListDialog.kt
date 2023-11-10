@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.BuildCompat
 import com.google.modernstorage.photopicker.PhotoPicker
 import com.smarttoolfactory.cropper.model.*
 import com.smarttoolfactory.cropper.util.buildOutline
@@ -445,8 +446,8 @@ private fun CropOutlineDisplay(
     }
 }
 
+@OptIn(BuildCompat.PrereleaseSdkCheck::class)
 @Suppress("DEPRECATION")
-@SuppressLint("UnsafeOptInUsageError")
 @Composable
 private fun PickImageMask(
     onImageSelected: (ImageBitmap) -> Unit
